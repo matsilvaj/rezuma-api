@@ -111,9 +111,9 @@ create trigger trg_subscriptions_updated_at
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-    -- Cria perfil público vinculado ao auth.users
-    insert into public.user_profiles (id)
-    values (new.id);
+    -- Cria perfil público vinculado ao auth.users, capturando o nome do metadata
+    insert into public.user_profiles (id, full_name)
+    values (new.id, new.raw_user_meta_data->>'full_name');
 
     -- Inicia trial de 7 dias automaticamente
     insert into public.subscriptions (user_id)
