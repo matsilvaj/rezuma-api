@@ -10,48 +10,53 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
-def _plan_from_subscription(sub: stripe.Subscription) -> str:
+from datetime import datetime, timezone
+
+
+def _attr(obj, key, default=None):
+    """Acessa atributo ou chave de um objeto Stripe de forma segura."""
+    try:
+        return getattr(obj, key, default)
+    except Exception:
+        return default
+
+
+def _period_end_iso(ts) -> str | None:
+    if not ts:
+        return None
+    return datetime.fromtimestamp(int(ts), tz=timezone.utc).isoformat()
+
+
+def _plan_from_subscription(sub) -> str:
     """Extrai 'monthly' ou 'annual' a partir do intervalo do preço."""
     try:
-        interval = sub["items"]["data"][0]["price"]["recurring"]["interval"]
+        interval = sub.items.data[0].price.recurring.interval
         return "annual" if interval == "year" else "monthly"
-    except (KeyError, IndexError):
+    except Exception:
         return "monthly"
 
 
-def _handle_checkout_completed(event: dict) -> None:
+def _handle_checkout_completed(event) -> None:
     """checkout.session.completed — vincula customer e ativa a assinatura."""
-    session = event["data"]["object"]
-    if session.get("mode") != "subscription":
+    session = event.data.object
+
+    if _attr(session, "mode") != "subscription":
         return
 
-    user_id = (session.get("metadata") or {}).get("user_id")
+    metadata = _attr(session, "metadata") or {}
+    user_id = metadata.get("user_id") if hasattr(metadata, "get") else getattr(metadata, "user_id", None)
     if not user_id:
         logger.warning("checkout.session.completed sem user_id no metadata.")
         return
 
-    stripe_customer_id = session.get("customer")
-    stripe_subscription_id = session.get("subscription")
-
+    stripe_customer_id = _attr(session, "customer")
+    stripe_subscription_id = _attr(session, "subscription")
     if not stripe_subscription_id:
         return
 
     sub = stripe.Subscription.retrieve(stripe_subscription_id)
     plan = _plan_from_subscription(sub)
-    current_period_end = sub.get("current_period_end")
-    period_end_iso = (
-        stripe.util.convert_to_dict({"t": current_period_end})["t"]
-        if current_period_end
-        else None
-    )
-
-    # Converte timestamp Unix para ISO 8601
-    from datetime import datetime, timezone
-    period_end_iso = (
-        datetime.fromtimestamp(current_period_end, tz=timezone.utc).isoformat()
-        if current_period_end
-        else None
-    )
+    period_end_iso = _period_end_iso(_attr(sub, "current_period_end"))
 
     supabase = get_supabase()
     supabase.table("subscriptions").upsert({
@@ -66,14 +71,14 @@ def _handle_checkout_completed(event: dict) -> None:
     logger.info(f"Assinatura ativada para user_id {user_id} — plano {plan}")
 
 
-def _handle_subscription_updated(event: dict) -> None:
+def _handle_subscription_updated(event) -> None:
     """customer.subscription.updated — sincroniza status, plano e período."""
-    sub = event["data"]["object"]
-    stripe_subscription_id = sub.get("id")
+    sub = event.data.object
+    stripe_subscription_id = _attr(sub, "id")
     if not stripe_subscription_id:
         return
 
-    stripe_status = sub.get("status", "")
+    stripe_status = _attr(sub, "status") or ""
     status_map = {
         "active": "active",
         "trialing": "trialing",
@@ -86,14 +91,7 @@ def _handle_subscription_updated(event: dict) -> None:
     }
     our_status = status_map.get(stripe_status, "past_due")
     plan = _plan_from_subscription(sub)
-
-    from datetime import datetime, timezone
-    current_period_end = sub.get("current_period_end")
-    period_end_iso = (
-        datetime.fromtimestamp(current_period_end, tz=timezone.utc).isoformat()
-        if current_period_end
-        else None
-    )
+    period_end_iso = _period_end_iso(_attr(sub, "current_period_end"))
 
     supabase = get_supabase()
     supabase.table("subscriptions").update({
@@ -105,10 +103,10 @@ def _handle_subscription_updated(event: dict) -> None:
     logger.info(f"Assinatura {stripe_subscription_id} atualizada → {our_status}")
 
 
-def _handle_subscription_deleted(event: dict) -> None:
+def _handle_subscription_deleted(event) -> None:
     """customer.subscription.deleted — marca como cancelada."""
-    sub = event["data"]["object"]
-    stripe_subscription_id = sub.get("id")
+    sub = event.data.object
+    stripe_subscription_id = _attr(sub, "id")
     if not stripe_subscription_id:
         return
 
@@ -121,10 +119,10 @@ def _handle_subscription_deleted(event: dict) -> None:
     logger.info(f"Assinatura {stripe_subscription_id} cancelada.")
 
 
-def _handle_invoice_payment_failed(event: dict) -> None:
+def _handle_invoice_payment_failed(event) -> None:
     """invoice.payment_failed — marca como inadimplente."""
-    invoice = event["data"]["object"]
-    stripe_subscription_id = invoice.get("subscription")
+    invoice = event.data.object
+    stripe_subscription_id = _attr(invoice, "subscription")
     if not stripe_subscription_id:
         return
 
