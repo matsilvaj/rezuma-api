@@ -69,7 +69,13 @@ async def telegram_webhook(
         "telegram_link_token_expires_at": None,
     }).eq("id", user_id).execute()
 
-    await send_message(chat_id, "✅ Telegram vinculado com sucesso! Você receberá os resumos do Rezuma aqui.")
+    await send_message(
+        chat_id,
+        "✅ Telegram vinculado com sucesso!\n\n"
+        "A partir de agora você receberá os resumos dos seus ativos diretamente aqui "
+        "sempre que houver novidades na sua carteira.\n\n"
+        "Rezuma · seus ativos, resumidos",
+    )
     logger.info(f"Telegram vinculado para user_id {user_id}")
 
     return {"ok": True}
