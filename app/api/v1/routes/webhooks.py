@@ -54,13 +54,14 @@ def _handle_checkout_completed(event: dict) -> None:
     )
 
     supabase = get_supabase()
-    supabase.table("subscriptions").update({
+    supabase.table("subscriptions").upsert({
+        "user_id": user_id,
         "stripe_customer_id": stripe_customer_id,
         "stripe_subscription_id": stripe_subscription_id,
         "status": "active",
         "plan": plan,
         "current_period_end": period_end_iso,
-    }).eq("user_id", user_id).execute()
+    }, on_conflict="user_id").execute()
 
     logger.info(f"Assinatura ativada para user_id {user_id} — plano {plan}")
 
@@ -160,7 +161,7 @@ async def stripe_webhook(
             sig_header=stripe_signature,
             secret=settings.STRIPE_WEBHOOK_SECRET,
         )
-    except stripe.errors.SignatureVerificationError:
+    except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Assinatura inválida.")
     except Exception:
         raise HTTPException(status_code=400, detail="Payload inválido.")
