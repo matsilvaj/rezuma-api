@@ -1,6 +1,6 @@
 import hmac
 
-from fastapi import APIRouter, Header, HTTPException, Request, status
+from fastapi import APIRouter, Header, HTTPException, Query, Request, status
 
 from app.core.config import settings
 from app.core.rate_limit import is_ip_blocked, is_rate_limited, record_failure, record_success
@@ -36,7 +36,7 @@ def _require_admin(request: Request, x_admin_key: str) -> None:
 @router.post("/run-pipeline", status_code=status.HTTP_200_OK)
 async def run_pipeline_manually(
     request: Request,
-    days_back: int = 7,
+    days_back: int = Query(default=7, ge=1, le=90),
     x_admin_key: str = Header(..., alias="X-Admin-Key"),
 ):
     """Dispara o pipeline manualmente. Requer header X-Admin-Key."""

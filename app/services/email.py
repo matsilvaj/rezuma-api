@@ -240,8 +240,9 @@ def send_consolidated_report(
     count = len(tickers)
     subject = f"Rezuma — {count} ativo{'s' if count != 1 else ''} com novidades hoje"
 
+    import html as _html
     first_name = (user_name or "").split()[0] if user_name else None
-    greeting = f"Olá, {first_name}!" if first_name else "Olá!"
+    greeting = f"Olá, {_html.escape(first_name)}!" if first_name else "Olá!"
 
     dividends_map = dividends_map or {}
     tv_quotes = tv_quotes or {}
