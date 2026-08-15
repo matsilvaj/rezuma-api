@@ -1,3 +1,4 @@
+import hmac
 import logging
 
 from fastapi import APIRouter, Header, HTTPException, Request, status
@@ -20,8 +21,9 @@ async def telegram_webhook(
     Verifica o secret token para garantir que a requisição veio do Telegram.
     Processa o comando /start TOKEN para vincular a conta do usuário.
     """
-    # Valida o secret token enviado pelo Telegram (obrigatório em produção)
-    if settings.TELEGRAM_WEBHOOK_SECRET and x_telegram_bot_api_secret_token != settings.TELEGRAM_WEBHOOK_SECRET:
+    if not settings.TELEGRAM_WEBHOOK_SECRET:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Webhook não configurado.")
+    if not hmac.compare_digest(x_telegram_bot_api_secret_token, settings.TELEGRAM_WEBHOOK_SECRET):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido.")
 
     body = await request.json()

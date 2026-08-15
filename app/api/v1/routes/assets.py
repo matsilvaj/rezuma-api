@@ -1,25 +1,39 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+import re
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 from app.core.database import get_supabase
+from app.core.rate_limit import is_rate_limited
 from app.core.security import get_user_id
 from app.models.schemas import AssetCreate
 
 router = APIRouter()
 
+_SEARCH_ALLOWED = re.compile(r"^[A-Za-z0-9 ]+$")
+
 
 @router.get("/search")
-def search_b3_assets(q: str = Query(min_length=1, max_length=20)):
+def search_b3_assets(request: Request, q: str = Query(min_length=1, max_length=20)):
     """
     Busca ativos no catálogo da B3 pelo ticker ou nome.
     Endpoint público para autocomplete — não exige autenticação.
     """
+    forwarded = request.headers.get("X-Forwarded-For")
+    ip = forwarded.split(",")[-1].strip() if forwarded else (request.client.host if request.client else "unknown")
+    if is_rate_limited(ip):
+        raise HTTPException(status_code=429, detail="Too many requests.")
+
+    if not _SEARCH_ALLOWED.match(q):
+        raise HTTPException(status_code=400, detail="Caracteres inválidos na busca.")
+
     supabase = get_supabase()
+    safe_q = q.strip()
 
     result = (
         supabase.table("b3_assets")
         .select("ticker, name, type")
-        .or_(f"ticker.ilike.%{q}%,name.ilike.%{q}%")
-        .not_.like("ticker", "%F")   # exclui ações fracionárias (ex: PETR4F)
+        .or_(f"ticker.ilike.%{safe_q}%,name.ilike.%{safe_q}%")
+        .not_.like("ticker", "%F")
         .order("ticker")
         .limit(20)
         .execute()
