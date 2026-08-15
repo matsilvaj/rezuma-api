@@ -22,9 +22,6 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str
     STRIPE_WEBHOOK_SECRET: str
 
-    # brapi.dev — market price for P/VP calculation (optional)
-    BRAPI_TOKEN: str = ""
-
     # App
     APP_ENV: str = "development"
     FRONTEND_URL: str = "http://localhost:3000"
@@ -34,7 +31,7 @@ class Settings(BaseSettings):
     TELEGRAM_WEBHOOK_SECRET: str = ""  # Secret enviado pelo Telegram em cada request ao webhook
 
     # E-mail — usar onboarding@resend.dev em dev (sem domínio verificado)
-    EMAIL_FROM: str = "Summai <onboarding@resend.dev>"
+    EMAIL_FROM: str = "Rezuma <onboarding@resend.dev>"
 
     # Alertas operacionais para o desenvolvedor (deixe vazio para desativar)
     ADMIN_EMAIL: str = ""
