@@ -2,12 +2,15 @@ import logging
 from contextlib import asynccontextmanager
 
 import httpx
+import stripe
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import router
 from app.core.config import settings
 from app.jobs.scheduler import seed_if_empty, start_scheduler, stop_scheduler
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
