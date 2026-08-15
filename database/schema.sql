@@ -19,9 +19,11 @@ create extension if not exists "uuid-ossp";
 create table public.user_profiles (
     id              uuid        primary key references auth.users(id) on delete cascade,
     full_name       text,
-    telegram_chat_id text       unique,
-    notify_email    boolean     not null default true,
-    notify_telegram boolean     not null default false,
+    telegram_chat_id            text        unique,
+    notify_email                boolean     not null default true,
+    notify_telegram             boolean     not null default false,
+    telegram_link_token         text        unique,
+    telegram_link_token_expires_at timestamptz,
     created_at      timestamptz not null default now(),
     updated_at      timestamptz not null default now()
 );
@@ -205,3 +207,8 @@ create index idx_reports_published_at on public.reports(published_at desc);
 
 -- Busca de logs por usuário (verificar se já foi notificado)
 create index idx_notification_logs_user_report on public.notification_logs(user_id, report_id);
+
+-- Lookup do token de vinculação do Telegram
+create index idx_user_profiles_telegram_link_token
+  on public.user_profiles (telegram_link_token)
+  where telegram_link_token is not null;

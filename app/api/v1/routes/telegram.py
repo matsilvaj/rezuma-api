@@ -45,7 +45,8 @@ async def telegram_webhook(
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat()
 
-    result = (
+    # maybe_single() retorna None (não APIResponse) quando nenhuma linha é encontrada
+    row = (
         supabase.table("user_profiles")
         .select("id")
         .eq("telegram_link_token", token)
@@ -54,9 +55,11 @@ async def telegram_webhook(
         .execute()
     )
 
-    if not result.data:
+    if not row:
         await send_message(chat_id, "❌ Link expirado ou inválido. Gere um novo link nas configurações do Rezuma.")
         return {"ok": True}
+
+    user_id = row.data["id"] if hasattr(row, "data") else row["id"]
 
     # Salva o chat_id, ativa notificações e invalida o token
     supabase.table("user_profiles").update({
@@ -64,9 +67,9 @@ async def telegram_webhook(
         "notify_telegram": True,
         "telegram_link_token": None,
         "telegram_link_token_expires_at": None,
-    }).eq("id", result.data["id"]).execute()
+    }).eq("id", user_id).execute()
 
     await send_message(chat_id, "✅ Telegram vinculado com sucesso! Você receberá os resumos do Rezuma aqui.")
-    logger.info(f"Telegram vinculado para user_id {result.data['id']}")
+    logger.info(f"Telegram vinculado para user_id {user_id}")
 
     return {"ok": True}
