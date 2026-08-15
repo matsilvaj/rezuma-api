@@ -51,8 +51,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Summai API",
-    description="Backend do Summai — resumos de relatórios de ações e FIIs.",
+    title="Rezuma API",
+    description="Backend do Rezuma — resumos de relatórios de ações e FIIs.",
     version="1.0.0",
     lifespan=lifespan,
     # Desabilita docs automáticas em produção

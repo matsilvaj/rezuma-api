@@ -177,7 +177,7 @@ def _build_html(
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Summai</title>
+  <title>Rezuma</title>
 </head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">
@@ -188,7 +188,7 @@ def _build_html(
 
         <!-- Header -->
         <tr><td style="background:#0f172a;border-radius:10px 10px 0 0;padding:24px 32px;">
-          <span style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">Summai</span>
+          <span style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">Rezuma</span>
           <span style="font-size:14px;color:#94a3b8;margin-left:10px;">seus ativos, resumidos</span>
         </td></tr>
 
@@ -209,7 +209,7 @@ def _build_html(
         <tr><td style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;
                         border-radius:0 0 10px 10px;padding:20px 32px;text-align:center;">
           <p style="margin:0;font-size:13px;color:#94a3b8;">
-            Summai · Você está recebendo este e-mail porque monitora ativos na plataforma.
+            Rezuma · Você está recebendo este e-mail porque monitora ativos na plataforma.
           </p>
         </td></tr>
 
@@ -238,7 +238,7 @@ def send_consolidated_report(
     """
     tickers = list(reports_by_ticker.keys())
     count = len(tickers)
-    subject = f"Summai — {count} ativo{'s' if count != 1 else ''} com novidades hoje"
+    subject = f"Rezuma — {count} ativo{'s' if count != 1 else ''} com novidades hoje"
 
     first_name = (user_name or "").split()[0] if user_name else None
     greeting = f"Olá, {first_name}!" if first_name else "Olá!"
@@ -286,7 +286,7 @@ def send_consolidated_report(
 
     text_body = f"{greeting}\n\nHoje há novidades para {count} ativo{'s' if count != 1 else ''} da sua carteira.\n\n"
     text_body += ("\n\n" + "─" * 40 + "\n\n").join(text_sections)
-    text_body += "\n\n─" * 40 + "\nSummai — seus ativos, resumidos."
+    text_body += "\n\n─" * 40 + "\nRezuma — seus ativos, resumidos."
 
     # ── Envio ─────────────────────────────────────────────────────────────
     payload: dict = {
@@ -327,7 +327,7 @@ def send_admin_alert(subject: str, body: str) -> None:
         resend.Emails.send({
             "from": settings.EMAIL_FROM,
             "to": [settings.ADMIN_EMAIL],
-            "subject": f"[Summai Alerta] {subject}",
+            "subject": f"[Rezuma Alerta] {subject}",
             "text": body,
         })
         logger.info(f"Alerta admin enviado: {subject}")

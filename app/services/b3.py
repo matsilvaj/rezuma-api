@@ -126,7 +126,7 @@ async def _fetch_fii_cnpj_map(client: httpx.AsyncClient) -> dict[str, str]:
     for year in years:
         url = _CVM_INF_MENSAL_FII.format(year=year)
         try:
-            r = await client.get(url, headers={"User-Agent": "Summai/1.0"}, timeout=60)
+            r = await client.get(url, headers={"User-Agent": "Rezuma/1.0"}, timeout=60)
             r.raise_for_status()
             _parse_fii_cnpj_from_zip(r.content, cnpj_map, ticker_date)
             logger.info(f"CVM inf_mensal FII {year}: {len(cnpj_map)} FIIs acumulados.")

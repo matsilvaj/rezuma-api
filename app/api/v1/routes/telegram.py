@@ -53,7 +53,7 @@ async def telegram_webhook(
     )
 
     if not result.data:
-        await send_message(chat_id, "❌ Link expirado ou inválido. Gere um novo link nas configurações do Summai.")
+        await send_message(chat_id, "❌ Link expirado ou inválido. Gere um novo link nas configurações do Rezuma.")
         return {"ok": True}
 
     # Salva o chat_id, ativa notificações e invalida o token
@@ -64,7 +64,7 @@ async def telegram_webhook(
         "telegram_link_token_expires_at": None,
     }).eq("id", result.data["id"]).execute()
 
-    await send_message(chat_id, "✅ Telegram vinculado com sucesso! Você receberá os resumos do Summai aqui.")
+    await send_message(chat_id, "✅ Telegram vinculado com sucesso! Você receberá os resumos do Rezuma aqui.")
     logger.info(f"Telegram vinculado para user_id {result.data['id']}")
 
     return {"ok": True}

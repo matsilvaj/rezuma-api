@@ -32,7 +32,7 @@ def _run_async(coro) -> None:
 
 async def _process_pipeline(days_back: int = 1) -> None:
     """
-    Pipeline principal do Summai:
+    Pipeline principal do Rezuma:
     1. Busca ativos monitorados e documentos novos na CVM
     2. Gera resumo + métricas com IA (reutiliza se já processado)
     3. Consolida por usuário e envia uma notificação por canal
@@ -318,7 +318,7 @@ def _check_data_source_health(
         return
 
     body = "\n\n".join([
-        "Alerta automático do pipeline Summai.",
+        "Alerta automático do pipeline Rezuma.",
         *alerts,
         f"Ciclo executado em: {date.today().isoformat()}",
     ])

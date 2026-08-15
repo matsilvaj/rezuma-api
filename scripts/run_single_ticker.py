@@ -1,7 +1,7 @@
 """
-Roda o pipeline do Summai para um único ticker específico.
+Roda o pipeline do Rezuma para um único ticker específico.
 
-Uso (da pasta summai-api):
+Uso (da pasta rezuma-api):
     python -m scripts.run_single_ticker HGLG11
     python -m scripts.run_single_ticker HGLG11 --days 30
 """
@@ -225,7 +225,7 @@ async def run(ticker: str, days_back: int) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Pipeline Summai para um único ticker")
+    parser = argparse.ArgumentParser(description="Pipeline Rezuma para um único ticker")
     parser.add_argument("ticker", help="Ticker do ativo (ex: HGLG11, BBAS3)")
     parser.add_argument("--days", type=int, default=60, help="Quantos dias atrás buscar (padrão: 60)")
     args = parser.parse_args()

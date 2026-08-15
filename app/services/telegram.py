@@ -31,7 +31,7 @@ async def send_asset_report(chat_id: str, ticker: str, reports: list[dict]) -> b
         parts.append(f"🔗 [Ver documento]({report['source_url']})")
 
     message = "\n\n─────────────────\n\n".join(parts)
-    message += "\n\n_Summai · seus ativos, resumidos_"
+    message += "\n\n_Rezuma · seus ativos, resumidos_"
 
     try:
         await _bot.send_message(

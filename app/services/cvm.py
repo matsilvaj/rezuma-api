@@ -49,7 +49,7 @@ def _normalize_cnpj(cnpj: str) -> str:
 
 async def _download_bytes(url: str) -> bytes:
     async with httpx.AsyncClient(timeout=120, follow_redirects=True) as client:
-        r = await client.get(url, headers={"User-Agent": "Summai/1.0"})
+        r = await client.get(url, headers={"User-Agent": "Rezuma/1.0"})
         r.raise_for_status()
         return r.content
 
@@ -384,6 +384,6 @@ async def fetch_new_documents(
 async def download_pdf(url: str) -> bytes:
     """Faz download de um documento PDF da CVM pelo LINK_DOC."""
     async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
-        r = await client.get(url, headers={"User-Agent": "Summai/1.0"})
+        r = await client.get(url, headers={"User-Agent": "Rezuma/1.0"})
         r.raise_for_status()
         return r.content
