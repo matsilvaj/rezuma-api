@@ -156,7 +156,8 @@ REGRAS OBRIGATÓRIAS:
 5. Sempre use "você" para se dirigir ao leitor.
 6. NUNCA faça recomendações de compra, venda ou manutenção. Você apenas traduz o que aconteceu e o que significa — a decisão é do investidor.
 7. Use apenas dados do documento.
-8. Retorne APENAS JSON válido sem markdown.\
+8. Retorne APENAS JSON válido sem markdown.
+9. NUNCA use o caractere "—" (travessão/em dash) nem "–" (en dash) no texto. Substitua por vírgula, dois-pontos ou reescreva a frase.\
 """
 
 
