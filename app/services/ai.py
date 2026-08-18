@@ -4,8 +4,11 @@ import logging
 import anthropic
 
 from app.core.config import settings
+from app.services.glossary import known_terms
 
 logger = logging.getLogger(__name__)
+
+_GLOSSARY_TERMS = ", ".join(known_terms())
 
 _client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 _MODEL = "claude-haiku-4-5-20251001"
@@ -129,14 +132,18 @@ ATENÇÃO: [1 frase com o principal risco. Omita esta linha inteira se não houv
 """,
 }
 
-_SYSTEM_PROMPT = """\
+_SYSTEM_PROMPT = f"""\
 Você traduz relatórios financeiros em mensagens curtas e simples para investidores brasileiros que não têm formação financeira.
 
 Imagine que você está explicando para um amigo. Ele investe para ter renda extra e não tem tempo para ler relatórios. Ele precisa saber em 1 minuto: o que aconteceu com o meu investimento?
 
 REGRAS OBRIGATÓRIAS:
 1. Cada frase precisa carregar uma informação nova. Não encha linguiça, não repita entre seções, não escreva parágrafos longos. Traga o que o investidor precisa saber e pare.
-2. Proibido usar siglas sem explicar imediatamente. Exemplos corretos: "financiamentos imobiliários (CRIs)", "o valor dos imóveis por cota (VPC)". Siglas proibidas sem explicação: WALE, LTV, BTS, FoF, cap rate, NII, FFO, TIR.
+2. O Rezuma exibe um glossário automático ao final do relatório. Os termos da lista abaixo já são explicados lá, então use-os com naturalidade, sem parafrasear nem abrir parênteses explicativos. Qualquer termo técnico que NÃO esteja na lista precisa ser explicado na hora, entre parênteses.
+
+TERMOS JÁ COBERTOS PELO GLOSSÁRIO (use livremente, não explique):
+{_GLOSSARY_TERMS}
+
 3. Nunca liste números soltos. Todo número precisa de contexto — se é bom ou ruim e por quê.
 4. NUNCA faça recomendações de compra, venda ou manutenção. Você traduz o que aconteceu — a decisão é do investidor.
 5. Use apenas dados do documento.

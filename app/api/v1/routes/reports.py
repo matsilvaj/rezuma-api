@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 
 from app.core.database import get_supabase
 from app.core.security import get_user_id
+from app.services.glossary import find_terms
 
 router = APIRouter()
 
@@ -35,15 +36,21 @@ def list_reports(
     # Busca relatórios apenas dos tickers da carteira do usuário
     reports_result = (
         supabase.table("reports")
-        .select("id, ticker, title, summary, document_type, source_url, published_at, created_at", count="exact")
+        .select("id, ticker, title, summary, document_type, source_url, published_at, created_at, metrics", count="exact")
         .in_("ticker", tickers)
         .order("published_at", desc=True)
         .range(offset, offset + limit - 1)
         .execute()
     )
 
+    # Glossário é derivado do resumo, não armazenado: mantém uma única fonte
+    # de verdade em glossary.py, compartilhada com o e-mail.
+    reports = reports_result.data or []
+    for report in reports:
+        report["glossary"] = find_terms(report.get("summary") or "")
+
     return {
-        "reports": reports_result.data,
+        "reports": reports,
         "page": page,
         "total": reports_result.count or 0,
     }

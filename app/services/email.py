@@ -6,6 +6,7 @@ from datetime import datetime
 import resend
 
 from app.core.config import settings
+from app.services.glossary import find_terms
 
 resend.api_key = settings.RESEND_API_KEY
 
@@ -231,6 +232,35 @@ def _summary_sections(text: str) -> str:
     return "".join(out)
 
 
+def _glossary_box(summary: str) -> str:
+    """Caixa com o significado dos termos técnicos citados no resumo."""
+    terms = find_terms(summary)
+    if not terms:
+        return ""
+
+    rows = ""
+    for i, entry in enumerate(terms):
+        pb = "14px" if i < len(terms) - 1 else "0"
+        rows += (
+            f'<tr><td style="padding-bottom:{pb};">'
+            f'<p style="font-family:{MONO};font-size:11px;font-weight:700;'
+            f'color:{RZ_TEXT};letter-spacing:0.2px;margin:0 0 4px 0;">{entry["term"]}</p>'
+            f'<p style="font-family:{SANS};font-size:12px;line-height:1.65;'
+            f'color:rgba(237,237,234,0.38);margin:0;">{entry["definition"]}</p>'
+            f'</td></tr>'
+        )
+
+    return (
+        f'<table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0 0;">'
+        f'<tr><td style="background:rgba(237,237,234,0.02);border:1px solid {RZ_BORDER};'
+        f'border-radius:6px;padding:16px 18px;">'
+        f'<p style="font-family:{MONO};font-size:9px;font-weight:600;letter-spacing:1.6px;'
+        f'text-transform:uppercase;color:{RZ_TEXT_T};margin:0 0 14px 0;">Glossário</p>'
+        f'<table width="100%" cellpadding="0" cellspacing="0">{rows}</table>'
+        f'</td></tr></table>'
+    )
+
+
 # ── Card de relatório (réplica do dashboard) ──────────────────────────────
 
 def _report_card(ticker: str, report: dict, dividends: list[dict]) -> str:
@@ -285,6 +315,9 @@ def _report_card(ticker: str, report: dict, dividends: list[dict]) -> str:
                 f' &middot; ex-data {_fmt_date(data_base)}{ir}</p>'
                 f'</td></tr></table>'
             )
+
+    # Glossário dos termos técnicos citados
+    right += _glossary_box(report.get("summary", ""))
 
     # Rodapé do card: entregue via + documento
     right += (
