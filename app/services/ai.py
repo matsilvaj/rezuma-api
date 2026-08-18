@@ -69,95 +69,70 @@ _METRICS_SCHEMAS: dict[str, dict] = {
 
 _SUMMARY_FORMATS: dict[str, str] = {
     "relatorio_gerencial": """\
-📊 {ticker} — MM/AAAA
+DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**. Responda: foi um bom mês? Inclua o rendimento por cota em negrito. Ex: "O fundo distribuiu **R$ X,XX por cota** esse mês, alta de X% frente ao mês anterior. A carteira segue com vacância de **X%**, abaixo da média do setor."]
 
-[1 frase respondendo: foi um bom mês para quem investe aqui? Ex: "O fundo pagou bem e a carteira continua saudável" ou "Mês fraco — o rendimento caiu e a vacância subiu"]
+> [1 frase curta com o dado mais marcante, estruturada como: **parte numérica em negrito**, contexto em texto normal. Ex: "**68% dos contratos são atípicos**, garantindo renda previsível até 2028 mesmo em cenário de retração."]
 
-💰 Você recebeu R$ X,XX por cota esse mês
-→ Quem tem 1.000 cotas recebeu R$ X.XXX
-[se houver métricas anteriores: foi ▲ mais ou ▼ menos que o mês passado — explique o motivo em 1 frase simples]
-
-[se P/VP disponível: 💡 A cota está sendo negociada X% [mais barata / mais cara] que o valor real dos ativos do fundo — [1 frase do que isso significa para quem compra agora]]
-
-[2 frases simples explicando o que garante (ou ameaça) esse rendimento: quem são os inquilinos/devedores, se os contratos são longos, se há imóveis vazios. Sem jargão.]
-
-[se houver evento relevante: ⚠️ Fique de olho: 1 frase sobre risco ou evento próximo em linguagem direta]\
+MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**. Explique o que sustenta o rendimento, quem são os principais inquilinos, o que mudou vs mês anterior. Se houver risco, inclua naturalmente no texto, sem emoji.]\
 """,
 
     "informe_mensal": """\
-📊 {ticker} — MM/AAAA
+DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**: rendimento por cota em negrito, se melhorou ou piorou vs período anterior. Ex: "Você recebeu **R$ X,XX por cota** esse mês, **X% a mais** que no mês passado."]
 
-[1 frase: foi um bom mês para quem investe aqui?]
+> [1 frase com o dado mais relevante em negrito e contexto em texto normal. Ex: "**Vacância caiu para X%**, o menor nível desde 20XX."]
 
-💰 Você recebeu R$ X,XX por cota esse mês
-→ Quem tem 1.000 cotas recebeu R$ X.XXX
-[se houver métricas anteriores: ▲ mais ou ▼ menos que o mês passado]
-
-[2 frases simples: o que sustenta o rendimento e o que pode mudar. Sem jargão.]
-[se houver risco relevante: ⚠️ 1 frase direta]
-
+MOVIMENTAÇÕES: [2 frases em prosa corrida com **palavras-chave em negrito**: o que sustenta o rendimento e o que pode mudar. Se houver risco, inclua naturalmente no texto.]\
 """,
 
     "itr": """\
-📈 {ticker} — XTaaaa
+DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**: o que aconteceu no trimestre e foi bom ou ruim. Ex: "Trimestre sólido: o **lucro líquido cresceu X%** e a **dívida caiu pelo terceiro período seguido**."]
 
-[1 frase respondendo: o que aconteceu no trimestre e foi bom ou ruim para quem investe aqui? Em linguagem simples.]
+> [1 frase com o número mais impactante em negrito e contexto em texto normal. Ex: "**Margem líquida de X%**, a mais alta dos últimos dois anos."]
 
-[2 frases explicando o que aconteceu e o que isso significa para o acionista — dividendos, dívida, crescimento. Use números só se ajudarem a entender, sempre com contexto.]
-[se houver métricas anteriores: mencione se melhorou ou piorou vs trimestre anterior em 1 frase]
-
-⚠️ [1 frase sobre o principal risco em linguagem direta]\
+MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendos. Se houver guidance ou risco, inclua naturalmente no texto.]\
 """,
 
     "dfp": """\
-📈 {ticker} — aaaa
+DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**: o que aconteceu no ano e foi bom ou ruim. Ex: "Ano positivo: a **receita cresceu X%** e o **lucro atingiu R$ Xbi**, o maior da história da empresa."]
 
-[1 frase respondendo: o que aconteceu no ano e foi bom ou ruim para quem investe aqui? Em linguagem simples.]
+> [1 frase com o número mais relevante do ano em negrito e contexto em texto normal.]
 
-[2 frases explicando o que aconteceu e o que isso significa para o acionista — dividendos pagos, se a empresa cresceu, se a dívida subiu ou caiu. Use números só com contexto.]
-[se houver métricas anteriores: mencione se melhorou ou piorou vs ano anterior em 1 frase]
-
-⚠️ [1 frase sobre o principal risco em linguagem direta]\
+MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendos pagos. Indique se melhorou ou piorou vs ano anterior. Se houver risco, inclua naturalmente no texto.]\
 """,
 
     "apresentacao_resultados": """\
-📈 {ticker} — XTaaaa
+DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito** sobre o que aconteceu no trimestre. Ex: "Trimestre sólido: o **lucro subiu X%** na comparação com o trimestre anterior, mostrando recuperação após um período fraco."]
 
-[1 frase respondendo: o que aconteceu no trimestre e foi bom ou ruim para quem investe aqui? Ex: "O Banco do Brasil teve um trimestre difícil — o lucro caiu por causa do aumento de calotes no agronegócio."]
+> [1 frase com o número mais marcante do trimestre em negrito e contexto em texto normal. Ex: "**Dividend por ação de R$ X,XX**, o maior da série histórica recente."]
 
-[2-3 frases sobre o que aconteceu e o que isso significa para o acionista: dividendos, dívida, crescimento. Sem jargão. Cada número com contexto de se é bom ou ruim.]
-[se houver métricas anteriores: 1 frase sobre melhora ou piora vs trimestre anterior]
-
-[se houver guidance: 📌 O que a empresa espera para os próximos meses: 1 frase simples]
-
-⚠️ [1 frase sobre o principal risco em linguagem direta]\
+MOVIMENTAÇÕES: [3-4 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendo por ação, melhora ou piora vs trimestre anterior. Se houver guidance ou risco, inclua naturalmente no texto.]\
 """,
 
     "fato_relevante": """\
-🔔 {ticker}
+DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**: o que aconteceu e se é boa ou má notícia. Ex: "A empresa anunciou a **aquisição de X por R$ Xbi**, o que deve aumentar a receita a partir de 20XX."]
 
-[1-2 frases: o que aconteceu em linguagem simples, e se é boa ou má notícia para quem tem essa ação/cota]
+> [1 frase com o impacto mais direto para o investidor em negrito e contexto em texto normal.]
 
-[2 frases sobre o que isso muda na prática: vai afetar o dividendo? aumenta o risco? é oportunidade?]
-[se houver risco: ⚠️ 1 frase direta]\
+MOVIMENTAÇÕES: [2 frases em prosa corrida com **palavras-chave em negrito**: o que isso muda na prática em termos de dividendo, risco ou oportunidade.]\
 """,
 }
 
 _SYSTEM_PROMPT = """\
 Você traduz relatórios financeiros em mensagens curtas e simples para investidores brasileiros que não têm formação financeira.
 
-Imagine que você está explicando para um amigo por WhatsApp. Ele investe para ter renda extra, assiste vídeos no YouTube sobre finanças e não tem tempo para ler relatórios. Ele precisa saber em 1 minuto: o que aconteceu com o meu investimento?
+Imagine que você está explicando para um amigo. Ele investe para ter renda extra e não tem tempo para ler relatórios. Ele precisa saber em 1 minuto: o que aconteceu com o meu investimento?
 
 REGRAS OBRIGATÓRIAS:
 1. Máximo de 150 palavras no resumo completo. Seja conciso.
 2. Proibido usar siglas sem explicar imediatamente. Exemplos corretos: "financiamentos imobiliários (CRIs)", "o valor dos imóveis por cota (VPC)". Siglas proibidas sem explicação: WALE, LTV, BTS, FoF, cap rate, NII, FFO.
-3. Nunca liste números soltos. Todo número precisa de contexto — se é bom ou ruim e por quê: "dívida caindo pelo 3º trimestre seguido — a empresa está mais saudável" é útil. "Dívida/EBITDA: 2,1x" não diz nada para o leigo.
+3. Nunca liste números soltos. Todo número precisa de contexto — se é bom ou ruim e por quê.
 4. Comece com uma frase que responda: o que aconteceu e foi bom ou ruim para quem investe aqui?
 5. Sempre use "você" para se dirigir ao leitor.
-6. NUNCA faça recomendações de compra, venda ou manutenção. Você apenas traduz o que aconteceu e o que significa — a decisão é do investidor.
+6. NUNCA faça recomendações de compra, venda ou manutenção. Você traduz o que aconteceu — a decisão é do investidor.
 7. Use apenas dados do documento.
 8. Retorne APENAS JSON válido sem markdown.
-9. NUNCA use o caractere "—" (travessão/em dash) nem "–" (en dash) no texto. Substitua por vírgula, dois-pontos ou reescreva a frase.\
+9. NUNCA use o caractere "—" (travessão/em dash) nem "–" (en dash) no texto. Substitua por vírgula, dois-pontos ou reescreva a frase.
+10. NUNCA use emojis, símbolos de bullet (◆ • → ▸) ou qualquer marcador de lista. Apenas prosa corrida.\
 """
 
 

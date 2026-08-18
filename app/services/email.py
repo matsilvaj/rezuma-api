@@ -53,53 +53,36 @@ def _summary_to_html(text: str) -> str:
         "letter-spacing:2px;text-transform:uppercase;"
         f"color:{RZ_FAINT};margin:0 0 8px 0;display:block;"
     )
-    BODY = f"margin:0 0 10px 0;font-size:14px;line-height:1.7;color:{RZ_MUTED};"
+    BODY  = f"margin:0 0 10px 0;font-size:14px;line-height:1.7;color:{RZ_MUTED};"
     QUOTE = (
-        f"margin:0 0 12px 0;padding:10px 14px;"
-        f"border-left:2px solid {RZ_ACCENT};"
+        f"margin:0 0 0 0;padding:10px 14px;"
+        f"border-left:2px solid rgba(94,184,138,0.35);"
         f"font-size:13px;font-style:italic;color:{RZ_FAINT};"
-    )
-    WARN = (
-        "margin:12px 0 0 0;padding:10px 14px;"
-        "background:rgba(245,158,11,0.06);"
-        "border-left:2px solid #f59e0b;"
-        "border-radius:4px;font-size:13px;"
-        f"color:rgba(237,237,234,0.55);"
     )
 
     parts: list[str] = []
-    first_destaque = True
 
     for line in text.strip().split("\n"):
         line = line.strip()
         if not line:
             continue
 
-        if line.upper().startswith("DESTAQUE:"):
-            body = line[len("DESTAQUE:"):].strip()
-            mt = "" if first_destaque else "margin-top:18px;"
-            first_destaque = False
+        if re.match(r"^DESTAQUE:", line, re.IGNORECASE):
+            body = re.sub(r"^DESTAQUE:\s*", "", line, flags=re.IGNORECASE).strip()
             parts.append(
-                f'<span style="{LABEL}{mt}">DESTAQUE</span>'
+                f'<span style="{LABEL}">DESTAQUE</span>'
                 f'<p style="{BODY}">{_md(body)}</p>'
             )
-        elif line.upper().startswith("MOVIMENTAÇÕES:") or line.upper().startswith("MOVIMENTACOES:"):
-            prefix_len = len("MOVIMENTAÇÕES:") if "Ç" in line.upper()[:15] else len("MOVIMENTACOES:")
-            body = line[prefix_len:].strip()
+        elif re.match(r"^MOVIMENTA[ÇC][OÕ]ES:", line, re.IGNORECASE):
+            body = re.sub(r"^MOVIMENTA[ÇC][OÕ]ES:\s*", "", line, flags=re.IGNORECASE).strip()
             parts.append(
-                f'<span style="{LABEL}margin-top:18px;">MOVIMENTAÇÕES</span>'
+                f'<p style="margin:16px 0 8px 0;height:1px;background:{RZ_BORDER};"></p>'
+                f'<span style="{LABEL}">MOVIMENTAÇÕES</span>'
                 f'<p style="{BODY}">{_md(body)}</p>'
             )
         elif line.startswith("> "):
             parts.append(f'<p style="{QUOTE}">{_md(line[2:].strip())}</p>')
-        elif line.startswith("⚠️"):
-            parts.append(f'<p style="{WARN}">{_md(line)}</p>')
-        elif line.startswith("📌"):
-            parts.append(
-                f'<p style="margin:8px 0;font-size:13px;color:{RZ_ACCENT};">{_md(line)}</p>'
-            )
         else:
-            # Linha solta da IA (continuação de parágrafo ou bullet residual)
             cleaned = _clean(line)
             if cleaned:
                 parts.append(f'<p style="{BODY}">{_md(cleaned)}</p>')
