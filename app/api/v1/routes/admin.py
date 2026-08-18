@@ -37,9 +37,11 @@ def _require_admin(request: Request, x_admin_key: str) -> None:
 async def run_pipeline_manually(
     request: Request,
     days_back: int = Query(default=7, ge=1, le=90),
+    ticker: str | None = Query(default=None, description="Filtrar por um ticker específico (ex: KNRI11)"),
     x_admin_key: str = Header(..., alias="X-Admin-Key"),
 ):
     """Dispara o pipeline manualmente. Requer header X-Admin-Key."""
     _require_admin(request, x_admin_key)
-    await _process_pipeline(days_back=days_back)
-    return {"message": f"Pipeline executado para os últimos {days_back} dia(s)."}
+    await _process_pipeline(days_back=days_back, ticker_filter=ticker)
+    scope = f"ticker={ticker}" if ticker else f"todos os ativos"
+    return {"message": f"Pipeline executado para os últimos {days_back} dia(s) — {scope}."}

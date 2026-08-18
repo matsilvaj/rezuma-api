@@ -30,21 +30,22 @@ def _run_async(coro) -> None:
     asyncio.run(coro)
 
 
-async def _process_pipeline(days_back: int = 1) -> None:
+async def _process_pipeline(days_back: int = 1, ticker_filter: str | None = None) -> None:
     """
     Pipeline principal do Rezuma:
     1. Busca ativos monitorados e documentos novos na CVM
     2. Gera resumo + métricas com IA (reutiliza se já processado)
     3. Consolida por usuário e envia uma notificação por canal
+
+    ticker_filter: se informado, processa apenas esse ticker (útil para testes).
     """
     since_date = date.today() - timedelta(days=days_back)
     supabase = get_supabase()
 
-    assets_result = (
-        supabase.table("assets")
-        .select("ticker, b3_assets(name, cnpj, type)")
-        .execute()
-    )
+    q = supabase.table("assets").select("ticker, b3_assets(name, cnpj, type)")
+    if ticker_filter:
+        q = q.eq("ticker", ticker_filter.upper())
+    assets_result = q.execute()
 
     seen_tickers: set[str] = set()
     unique_assets = []
