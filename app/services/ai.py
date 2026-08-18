@@ -69,51 +69,63 @@ _METRICS_SCHEMAS: dict[str, dict] = {
 
 _SUMMARY_FORMATS: dict[str, str] = {
     "relatorio_gerencial": """\
-DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**. Responda: foi um bom mês? Inclua o rendimento por cota em negrito. Ex: "O fundo distribuiu **R$ X,XX por cota** esse mês, alta de X% frente ao mês anterior. A carteira segue com vacância de **X%**, abaixo da média do setor."]
+DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**. Responda: foi um bom mês? Inclua o rendimento por cota em negrito, compare com o mês anterior, e mencione o estado geral do fundo. Ex: "O fundo distribuiu **R$ X,XX por cota** esse mês, alta de X% frente a junho. A carteira segue saudável: **vacância de X%**, abaixo da média do setor, e contratos bem distribuídos entre grandes inquilinos."]
 
-> [1 frase curta com o dado mais marcante, estruturada como: **parte numérica em negrito**, contexto em texto normal. Ex: "**68% dos contratos são atípicos**, garantindo renda previsível até 2028 mesmo em cenário de retração."]
+> [1 frase curta com o dado mais marcante, estruturada como: **parte numérica ou fato em negrito**, contexto em texto normal. Ex: "**68% dos contratos são atípicos**, garantindo renda previsível até 2028 mesmo em cenário de retração."]
 
-MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**. Explique o que sustenta o rendimento, quem são os principais inquilinos, o que mudou vs mês anterior. Se houver risco, inclua naturalmente no texto, sem emoji.]\
+MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**. Explique o que aconteceu de concreto: imóveis vendidos ou comprados, obras, inquilinos que saíram ou entraram, variação de receita. Seja específico.
+
+ATENÇÃO: [1-2 frases sobre o principal risco ou ponto de atenção para o investidor. Ex: "A Cargill vai desocupar um galpão em janeiro de 2027, o que pode elevar a vacância para X%." Omita esta seção inteira se não houver risco relevante a destacar.]\
 """,
 
     "informe_mensal": """\
-DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**: rendimento por cota em negrito, se melhorou ou piorou vs período anterior. Ex: "Você recebeu **R$ X,XX por cota** esse mês, **X% a mais** que no mês passado."]
+DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**: rendimento por cota em negrito, comparação com o mês anterior, e o principal fator que explica o resultado. Ex: "Você recebeu **R$ X,XX por cota** esse mês, **X% a mais** que no mês passado. O crescimento veio principalmente dos contratos de aluguel reajustados pelo IPCA."]
 
-> [1 frase com o dado mais relevante em negrito e contexto em texto normal. Ex: "**Vacância caiu para X%**, o menor nível desde 20XX."]
+> [1 frase com o dado mais relevante em negrito e contexto em texto normal.]
 
-MOVIMENTAÇÕES: [2 frases em prosa corrida com **palavras-chave em negrito**: o que sustenta o rendimento e o que pode mudar. Se houver risco, inclua naturalmente no texto.]\
+MOVIMENTAÇÕES: [2 frases em prosa corrida com **palavras-chave em negrito**: o que sustenta o rendimento e o que pode mudar nos próximos meses.]
+
+ATENÇÃO: [1-2 frases sobre risco ou ponto de atenção. Omita se não houver.]\
 """,
 
     "itr": """\
-DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**: o que aconteceu no trimestre e foi bom ou ruim. Ex: "Trimestre sólido: o **lucro líquido cresceu X%** e a **dívida caiu pelo terceiro período seguido**."]
+DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**: o que aconteceu no trimestre, se foi bom ou ruim, e os principais números. Ex: "Trimestre sólido: o **lucro líquido cresceu X%** para R$ Xbi e a **dívida caiu pelo terceiro período seguido**. A empresa está mais eficiente e com mais caixa para distribuir dividendos."]
 
-> [1 frase com o número mais impactante em negrito e contexto em texto normal. Ex: "**Margem líquida de X%**, a mais alta dos últimos dois anos."]
+> [1 frase com o número mais impactante em negrito e contexto em texto normal.]
 
-MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendos. Se houver guidance ou risco, inclua naturalmente no texto.]\
+MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendos. Compare com o trimestre anterior.]
+
+ATENÇÃO: [1-2 frases sobre risco ou guidance negativo. Omita se não houver.]\
 """,
 
     "dfp": """\
-DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**: o que aconteceu no ano e foi bom ou ruim. Ex: "Ano positivo: a **receita cresceu X%** e o **lucro atingiu R$ Xbi**, o maior da história da empresa."]
+DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**: o que aconteceu no ano, se foi bom ou ruim, e os principais números comparados com o ano anterior. Ex: "Ano positivo: a **receita cresceu X%** e o **lucro atingiu R$ Xbi**, o maior da história da empresa. Os dividendos pagos também bateram recorde."]
 
-> [1 frase com o número mais relevante do ano em negrito e contexto em texto normal.]
+> [1 frase com o número mais relevante do ano em negrito e contexto.]
 
-MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendos pagos. Indique se melhorou ou piorou vs ano anterior. Se houver risco, inclua naturalmente no texto.]\
+MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendos pagos vs ano anterior.]
+
+ATENÇÃO: [1-2 frases sobre risco ou tendência negativa. Omita se não houver.]\
 """,
 
     "apresentacao_resultados": """\
-DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito** sobre o que aconteceu no trimestre. Ex: "Trimestre sólido: o **lucro subiu X%** na comparação com o trimestre anterior, mostrando recuperação após um período fraco."]
+DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito** sobre o que aconteceu no trimestre. Inclua o principal número financeiro (lucro, receita ou dividendo), compare com o trimestre anterior, e diga se a empresa está melhorando ou piorando. Ex: "Trimestre sólido: o **lucro subiu X%** frente ao 2T25, mostrando recuperação após um período fraco. A **receita cresceu X%** e a margem líquida voltou a subir."]
 
-> [1 frase com o número mais marcante do trimestre em negrito e contexto em texto normal. Ex: "**Dividend por ação de R$ X,XX**, o maior da série histórica recente."]
+> [1 frase com o número mais marcante em negrito e contexto.]
 
-MOVIMENTAÇÕES: [3-4 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendo por ação, melhora ou piora vs trimestre anterior. Se houver guidance ou risco, inclua naturalmente no texto.]\
+MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendo por ação, melhora ou piora vs trimestre anterior. Mencione guidance se houver.]
+
+ATENÇÃO: [1-2 frases sobre risco ou ponto de atenção. Omita se não houver.]\
 """,
 
     "fato_relevante": """\
-DESTAQUE: [1-2 frases em prosa com **palavras-chave em negrito**: o que aconteceu e se é boa ou má notícia. Ex: "A empresa anunciou a **aquisição de X por R$ Xbi**, o que deve aumentar a receita a partir de 20XX."]
+DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**: o que aconteceu, se é boa ou má notícia, e o que muda para o investidor. Ex: "A empresa anunciou a **aquisição de X por R$ Xbi**, financiada com caixa próprio. Isso deve aumentar a receita a partir de 20XX e tem potencial de elevar os dividendos futuros."]
 
-> [1 frase com o impacto mais direto para o investidor em negrito e contexto em texto normal.]
+> [1 frase com o impacto mais direto para o investidor em negrito e contexto.]
 
-MOVIMENTAÇÕES: [2 frases em prosa corrida com **palavras-chave em negrito**: o que isso muda na prática em termos de dividendo, risco ou oportunidade.]\
+MOVIMENTAÇÕES: [2 frases em prosa corrida com **palavras-chave em negrito**: o que muda na prática em dividendo, risco ou oportunidade.]
+
+ATENÇÃO: [1-2 frases sobre risco. Omita se não houver.]\
 """,
 }
 

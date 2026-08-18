@@ -62,6 +62,19 @@ def _summary_to_html(text: str) -> str:
 
     parts: list[str] = []
 
+    ATENCAO = (
+        f"margin:0;padding:10px 14px;"
+        f"background:rgba(237,80,50,0.05);"
+        f"border:1px solid rgba(237,80,50,0.12);"
+        f"border-radius:6px;"
+    )
+    ATENCAO_LABEL = (
+        "font-family:monospace;font-size:10px;font-weight:600;"
+        "letter-spacing:2px;text-transform:uppercase;"
+        "color:rgba(237,100,80,0.55);margin:0 0 6px 0;display:block;"
+    )
+    ATENCAO_TEXT = "margin:0;font-size:13px;line-height:1.7;color:rgba(237,150,130,0.70);"
+
     for line in text.strip().split("\n"):
         line = line.strip()
         if not line:
@@ -76,10 +89,21 @@ def _summary_to_html(text: str) -> str:
         elif re.match(r"^MOVIMENTA[ÇC][OÕ]ES:", line, re.IGNORECASE):
             body = re.sub(r"^MOVIMENTA[ÇC][OÕ]ES:\s*", "", line, flags=re.IGNORECASE).strip()
             parts.append(
-                f'<p style="margin:16px 0 8px 0;height:1px;background:{RZ_BORDER};"></p>'
+                f'<table width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0 8px 0;">'
+                f'<tr><td style="height:1px;background:{RZ_BORDER};font-size:0;">&nbsp;</td></tr>'
+                f'</table>'
                 f'<span style="{LABEL}">MOVIMENTAÇÕES</span>'
                 f'<p style="{BODY}">{_md(body)}</p>'
             )
+        elif re.match(r"^ATEN[ÇC][AÃ]O:", line, re.IGNORECASE):
+            body = re.sub(r"^ATEN[ÇC][AÃ]O:\s*", "", line, flags=re.IGNORECASE).strip()
+            if body:
+                parts.append(
+                    f'<div style="{ATENCAO}">'
+                    f'<span style="{ATENCAO_LABEL}">Atenção</span>'
+                    f'<p style="{ATENCAO_TEXT}">{_md(body)}</p>'
+                    f'</div>'
+                )
         elif line.startswith("> "):
             parts.append(f'<p style="{QUOTE}">{_md(line[2:].strip())}</p>')
         else:
