@@ -161,6 +161,31 @@ ALIASES: dict[str, str] = {
     "inadimplências": "inadimplência",
 }
 
+# ── Termos básicos ────────────────────────────────────────────────────────
+# Qualquer investidor que já comprou um FII ou uma ação conhece estes. Ficam
+# no dicionário para a IA poder usá-los sem abrir parênteses no texto, mas não
+# são exibidos na caixa de glossário: apareceriam em todo relatório, todo mês.
+# A régua é o BTS: só entra na caixa o que não é óbvio para quem já investe.
+
+BASIC_TERMS: set[str] = {
+    # Estrutura do fundo
+    "FII", "cota", "cotista", "gestor", "administrador", "assembleia",
+    "taxa de administração", "emissão",
+    # Rendimento
+    "dividendo", "dividend yield", "DY", "rendimento por cota",
+    "patrimônio líquido", "data de pagamento",
+    # Operação do fundo
+    "vacância física", "inadimplência",
+    # Resultado das empresas
+    "receita líquida", "lucro líquido", "margem líquida", "margem bruta",
+    "dívida líquida",
+    # Mercado e documentos
+    "B3", "CVM", "IPO", "fato relevante", "informe mensal",
+    # Índices
+    "Selic", "CDI", "IPCA", "IGP-M",
+}
+
+
 # Termos escritos em caixa alta são casados respeitando maiúsculas para evitar
 # falso positivo (ex: "B3" vs "b3", "DY" dentro de outra palavra).
 _CASE_SENSITIVE = {
@@ -207,10 +232,13 @@ def known_terms() -> list[str]:
     return sorted(GLOSSARY.keys(), key=str.lower)
 
 
-def find_terms(text: str) -> list[dict]:
+def find_terms(text: str, include_basic: bool = False) -> list[dict]:
     """
     Retorna os termos do glossário presentes no texto, na ordem em que
     aparecem: [{"term": "BTS", "definition": "..."}, ...]
+
+    Termos de BASIC_TERMS ficam de fora por padrão: repetem em todo relatório
+    e quem investe já os conhece. Passe include_basic=True para trazer todos.
 
     Trechos já casados por um termo mais longo não são reaproveitados, para
     "margem EBITDA" não gerar também um verbete solto de "EBITDA".
@@ -241,4 +269,5 @@ def find_terms(text: str) -> list[dict]:
     return [
         {"term": term, "definition": GLOSSARY[term]}
         for term in sorted(found, key=lambda t: found[t])
+        if include_basic or term not in BASIC_TERMS
     ]
