@@ -363,7 +363,15 @@ async def _notify_user(
     # E-mail consolidado com todos os ativos
     if notify_email and email:
         reports_for_email = {
-            ticker: [{"title": r["title"], "summary": r["summary"], "source_url": r["source_url"]} for r in reports]
+            ticker: [
+                {
+                    "title": r["title"],
+                    "summary": r["summary"],
+                    "source_url": r["source_url"],
+                    "document_type": r.get("document_type", ""),
+                }
+                for r in reports
+            ]
             for ticker, reports in reports_by_ticker.items()
         }
         # Collect all downloaded PDFs as attachments
