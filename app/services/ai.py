@@ -164,7 +164,8 @@ def summarize(
     user_prompt = (
         f"Analise o documento abaixo do ativo {ticker} (tipo: {document_type}).\n\n"
         f"Retorne JSON com dois campos:\n"
-        f"- \"summary\": resumo seguindo EXATAMENTE este formato:\n{fmt}\n\n"
+        f"- \"summary\": UMA STRING de texto puro (não objeto JSON) seguindo EXATAMENTE este formato "
+        f"(substitua os colchetes pelo conteúdo real):\n{fmt}\n\n"
         f"- \"metrics\": métricas extraídas conforme este schema:\n"
         f"{json.dumps(schema, ensure_ascii=False, indent=2)}"
         f"{previous_context}\n\n"
@@ -189,8 +190,36 @@ def summarize(
             if raw.startswith("json"):
                 raw = raw[4:].strip()
         data = json.loads(raw)
-        summary = data.get("summary", "").strip()
+        summary_raw = data.get("summary", "")
+
+        # Modelo às vezes retorna summary como objeto {DESTAQUE: ..., MOVIMENTAÇÕES: ...}
+        # em vez de string — nesse caso, reconstrói a string manualmente
+        if isinstance(summary_raw, dict):
+            parts: list[str] = []
+            destaque = summary_raw.get("DESTAQUE") or summary_raw.get("destaque", "")
+            quote    = summary_raw.get("quote") or summary_raw.get(">", "")
+            mov      = (
+                summary_raw.get("MOVIMENTAÇÕES")
+                or summary_raw.get("MOVIMENTACOES")
+                or summary_raw.get("movimentacoes", "")
+            )
+            if isinstance(destaque, list):
+                destaque = " ".join(str(x) for x in destaque)
+            if isinstance(mov, list):
+                mov = " ".join(str(x) for x in mov)
+            if destaque:
+                parts.append(f"DESTAQUE: {destaque}")
+            if quote:
+                parts.append(f"> {quote}")
+            if mov:
+                parts.append(f"MOVIMENTAÇÕES: {mov}")
+            summary = "\n\n".join(parts).strip()
+        else:
+            summary = str(summary_raw).strip()
+
         metrics = data.get("metrics", {})
+        if not isinstance(metrics, dict):
+            metrics = {}
         logger.info(f"Resumo gerado para {ticker}: {len(summary)} chars.")
         return summary, metrics
     except (json.JSONDecodeError, KeyError, IndexError) as e:
