@@ -137,6 +137,7 @@ async def _process_pipeline(days_back: int = 1, ticker_filter: str | None = None
                 if existing_data:
                     report_id = existing_data["id"]
                     summary = existing_data["summary"]
+                    report_metrics = existing_data.get("metrics") or {}
                     logger.info(f"Relatório reutilizado: {ticker} — {doc['title']}")
                 else:
                     # Busca métricas do relatório anterior para comparação
@@ -188,6 +189,8 @@ async def _process_pipeline(days_back: int = 1, ticker_filter: str | None = None
 
                     if not summary:
                         continue
+
+                    report_metrics = metrics or {}
 
                     result = supabase.table("reports").insert({
                         "ticker": ticker,
@@ -253,6 +256,7 @@ async def _process_pipeline(days_back: int = 1, ticker_filter: str | None = None
                         "summary": summary,
                         "source_url": doc["source_url"],
                         "document_type": doc["document_type"],
+                        "metrics": report_metrics,
                         "pdf_bytes": pdf_bytes,
                         "notify_email": profile.get("notify_email", True),
                         "notify_telegram": profile.get("notify_telegram", False),
@@ -369,6 +373,7 @@ async def _notify_user(
                     "summary": r["summary"],
                     "source_url": r["source_url"],
                     "document_type": r.get("document_type", ""),
+                    "metrics": r.get("metrics") or {},
                 }
                 for r in reports
             ]

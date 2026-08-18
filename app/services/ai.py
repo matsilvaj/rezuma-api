@@ -69,63 +69,63 @@ _METRICS_SCHEMAS: dict[str, dict] = {
 
 _SUMMARY_FORMATS: dict[str, str] = {
     "relatorio_gerencial": """\
-DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**. Responda: foi um bom mês? Inclua o rendimento por cota em negrito, compare com o mês anterior, e mencione o estado geral do fundo. Ex: "O fundo distribuiu **R$ X,XX por cota** esse mês, alta de X% frente a junho. A carteira segue saudável: **vacância de X%**, abaixo da média do setor, e contratos bem distribuídos entre grandes inquilinos."]
+DESTAQUE: [2 a 3 frases curtas. Traga o rendimento por cota em **negrito**, a variação frente ao mês anterior e o estado geral da carteira. Cada frase carrega uma informação nova.]
 
-> [1 frase curta com o dado mais marcante, estruturada como: **parte numérica ou fato em negrito**, contexto em texto normal. Ex: "**68% dos contratos são atípicos**, garantindo renda previsível até 2028 mesmo em cenário de retração."]
+> [1 frase com o dado mais marcante do mês: o fato em **negrito** no início, o contexto em texto normal depois.]
 
-MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**. Explique o que aconteceu de concreto: imóveis vendidos ou comprados, obras, inquilinos que saíram ou entraram, variação de receita. Seja específico.
+MOVIMENTAÇÕES: [1 a 2 frases sobre o que mudou de concreto no período: compras, vendas, obras, entrada ou saída de inquilinos. Não repita nada que já apareceu no DESTAQUE.]
 
-ATENÇÃO: [1-2 frases sobre o principal risco ou ponto de atenção para o investidor. Ex: "A Cargill vai desocupar um galpão em janeiro de 2027, o que pode elevar a vacância para X%." Omita esta seção inteira se não houver risco relevante a destacar.]\
+ATENÇÃO: [1 frase com o principal risco à frente. Omita esta linha inteira se o documento não apontar risco relevante.]\
 """,
 
     "informe_mensal": """\
-DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**: rendimento por cota em negrito, comparação com o mês anterior, e o principal fator que explica o resultado. Ex: "Você recebeu **R$ X,XX por cota** esse mês, **X% a mais** que no mês passado. O crescimento veio principalmente dos contratos de aluguel reajustados pelo IPCA."]
+DESTAQUE: [2 a 3 frases curtas: rendimento por cota em **negrito**, comparação com o mês anterior e o fator que explica o resultado.]
 
-> [1 frase com o dado mais relevante em negrito e contexto em texto normal.]
+> [1 frase com o dado mais relevante: fato em **negrito** no início, contexto depois.]
 
-MOVIMENTAÇÕES: [2 frases em prosa corrida com **palavras-chave em negrito**: o que sustenta o rendimento e o que pode mudar nos próximos meses.]
+MOVIMENTAÇÕES: [1 a 2 frases sobre o que mudou no período e o que pode mudar adiante. Não repita o DESTAQUE.]
 
-ATENÇÃO: [1-2 frases sobre risco ou ponto de atenção. Omita se não houver.]\
+ATENÇÃO: [1 frase com o principal risco. Omita esta linha inteira se não houver risco relevante.]\
 """,
 
     "itr": """\
-DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**: o que aconteceu no trimestre, se foi bom ou ruim, e os principais números. Ex: "Trimestre sólido: o **lucro líquido cresceu X%** para R$ Xbi e a **dívida caiu pelo terceiro período seguido**. A empresa está mais eficiente e com mais caixa para distribuir dividendos."]
+DESTAQUE: [2 a 3 frases curtas: o resultado do trimestre com o número principal em **negrito**, a variação frente ao trimestre anterior e se a empresa melhorou ou piorou.]
 
-> [1 frase com o número mais impactante em negrito e contexto em texto normal.]
+> [1 frase com o número mais impactante em **negrito** no início e o contexto depois.]
 
-MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendos. Compare com o trimestre anterior.]
+MOVIMENTAÇÕES: [1 a 2 frases sobre o que mudou de concreto: dívida, investimentos, dividendos anunciados. Não repita o DESTAQUE.]
 
-ATENÇÃO: [1-2 frases sobre risco ou guidance negativo. Omita se não houver.]\
+ATENÇÃO: [1 frase com o principal risco ou guidance negativo. Omita esta linha inteira se não houver.]\
 """,
 
     "dfp": """\
-DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**: o que aconteceu no ano, se foi bom ou ruim, e os principais números comparados com o ano anterior. Ex: "Ano positivo: a **receita cresceu X%** e o **lucro atingiu R$ Xbi**, o maior da história da empresa. Os dividendos pagos também bateram recorde."]
+DESTAQUE: [2 a 3 frases curtas: o resultado do ano com o número principal em **negrito**, comparação com o ano anterior e a tendência geral.]
 
-> [1 frase com o número mais relevante do ano em negrito e contexto.]
+> [1 frase com o número mais relevante do ano em **negrito** no início e o contexto depois.]
 
-MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendos pagos vs ano anterior.]
+MOVIMENTAÇÕES: [1 a 2 frases sobre o que mudou de concreto no ano: dívida, dividendos pagos, investimentos. Não repita o DESTAQUE.]
 
-ATENÇÃO: [1-2 frases sobre risco ou tendência negativa. Omita se não houver.]\
+ATENÇÃO: [1 frase com o principal risco ou tendência negativa. Omita esta linha inteira se não houver.]\
 """,
 
     "apresentacao_resultados": """\
-DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito** sobre o que aconteceu no trimestre. Inclua o principal número financeiro (lucro, receita ou dividendo), compare com o trimestre anterior, e diga se a empresa está melhorando ou piorando. Ex: "Trimestre sólido: o **lucro subiu X%** frente ao 2T25, mostrando recuperação após um período fraco. A **receita cresceu X%** e a margem líquida voltou a subir."]
+DESTAQUE: [2 a 3 frases curtas: o resultado do trimestre com o número principal em **negrito**, a variação frente ao trimestre anterior e se a empresa melhorou ou piorou.]
 
-> [1 frase com o número mais marcante em negrito e contexto.]
+> [1 frase com o número mais marcante em **negrito** no início e o contexto depois.]
 
-MOVIMENTAÇÕES: [2-3 frases em prosa corrida com **palavras-chave em negrito**: receita, lucro, dívida, dividendo por ação, melhora ou piora vs trimestre anterior. Mencione guidance se houver.]
+MOVIMENTAÇÕES: [1 a 2 frases sobre o que mudou de concreto: dívida, dividendo por ação, guidance divulgado. Não repita o DESTAQUE.]
 
-ATENÇÃO: [1-2 frases sobre risco ou ponto de atenção. Omita se não houver.]\
+ATENÇÃO: [1 frase com o principal risco. Omita esta linha inteira se não houver.]\
 """,
 
     "fato_relevante": """\
-DESTAQUE: [2-3 frases em prosa com **palavras-chave em negrito**: o que aconteceu, se é boa ou má notícia, e o que muda para o investidor. Ex: "A empresa anunciou a **aquisição de X por R$ Xbi**, financiada com caixa próprio. Isso deve aumentar a receita a partir de 20XX e tem potencial de elevar os dividendos futuros."]
+DESTAQUE: [2 a 3 frases curtas: o que foi anunciado com o dado principal em **negrito**, se é boa ou má notícia e o que muda para quem investe.]
 
-> [1 frase com o impacto mais direto para o investidor em negrito e contexto.]
+> [1 frase com o impacto mais direto para o investidor em **negrito** no início e o contexto depois.]
 
-MOVIMENTAÇÕES: [2 frases em prosa corrida com **palavras-chave em negrito**: o que muda na prática em dividendo, risco ou oportunidade.]
+MOVIMENTAÇÕES: [1 a 2 frases sobre o que muda na prática em dividendo, risco ou oportunidade. Não repita o DESTAQUE.]
 
-ATENÇÃO: [1-2 frases sobre risco. Omita se não houver.]\
+ATENÇÃO: [1 frase com o principal risco. Omita esta linha inteira se não houver.]\
 """,
 }
 
@@ -135,16 +135,32 @@ Você traduz relatórios financeiros em mensagens curtas e simples para investid
 Imagine que você está explicando para um amigo. Ele investe para ter renda extra e não tem tempo para ler relatórios. Ele precisa saber em 1 minuto: o que aconteceu com o meu investimento?
 
 REGRAS OBRIGATÓRIAS:
-1. Máximo de 150 palavras no resumo completo. Seja conciso.
-2. Proibido usar siglas sem explicar imediatamente. Exemplos corretos: "financiamentos imobiliários (CRIs)", "o valor dos imóveis por cota (VPC)". Siglas proibidas sem explicação: WALE, LTV, BTS, FoF, cap rate, NII, FFO.
+1. Cada frase precisa carregar uma informação nova. Não encha linguiça, não repita entre seções, não escreva parágrafos longos. Traga o que o investidor precisa saber e pare.
+2. Proibido usar siglas sem explicar imediatamente. Exemplos corretos: "financiamentos imobiliários (CRIs)", "o valor dos imóveis por cota (VPC)". Siglas proibidas sem explicação: WALE, LTV, BTS, FoF, cap rate, NII, FFO, TIR.
 3. Nunca liste números soltos. Todo número precisa de contexto — se é bom ou ruim e por quê.
-4. Comece com uma frase que responda: o que aconteceu e foi bom ou ruim para quem investe aqui?
-5. Sempre use "você" para se dirigir ao leitor.
-6. NUNCA faça recomendações de compra, venda ou manutenção. Você traduz o que aconteceu — a decisão é do investidor.
-7. Use apenas dados do documento.
-8. Retorne APENAS JSON válido sem markdown.
-9. NUNCA use o caractere "—" (travessão/em dash) nem "–" (en dash) no texto. Substitua por vírgula, dois-pontos ou reescreva a frase.
-10. NUNCA use emojis, símbolos de bullet (◆ • → ▸) ou qualquer marcador de lista. Apenas prosa corrida.\
+4. NUNCA faça recomendações de compra, venda ou manutenção. Você traduz o que aconteceu — a decisão é do investidor.
+5. Use apenas dados do documento.
+6. Retorne APENAS JSON válido sem markdown.
+7. NUNCA use o caractere "—" (travessão/em dash) nem "–" (en dash) no texto. Substitua por vírgula, dois-pontos ou reescreva a frase.
+8. NUNCA use emojis, símbolos de bullet (◆ • → ▸) ou qualquer marcador de lista.
+
+ESTRUTURA DO CAMPO "summary" (regra crítica):
+O campo "summary" é UMA STRING de texto puro, nunca um objeto JSON.
+Cada seção começa em sua própria linha, com uma linha em branco entre elas.
+Os rótulos "DESTAQUE:", "MOVIMENTAÇÕES:" e "ATENÇÃO:" são literais e obrigatórios (exceto ATENÇÃO, que pode ser omitida).
+NUNCA junte o conteúdo de várias seções em uma só.
+
+EXEMPLO DE SAÍDA CORRETA para o campo "summary":
+
+DESTAQUE: Resultado distribuível de **R$ 0,89 por cota**, alta de 3,5% frente ao 2T25. Vacância física mantida em **3,2%**, abaixo da média setorial de 6,1%. Fundo permanece entre os mais defensivos do segmento logístico.
+
+> **Contratos atípicos representam 68% da receita**, conferindo previsibilidade de caixa até 2028 mesmo em cenário de retração do mercado imobiliário.
+
+MOVIMENTAÇÕES: Gestão sinalizou **aquisição de dois galpões em Guarulhos**, com impacto positivo esperado no portfólio a partir do 1T26. Transações ainda sujeitas a aprovação de cotistas em assembleia extraordinária.
+
+ATENÇÃO: A Cargill desocupa um galpão em janeiro de 2027, o que pode elevar a vacância para **3,8%**.
+
+Note no exemplo: frases curtas, nenhuma repetição entre seções, negrito apenas nos dados que importam.\
 """
 
 
