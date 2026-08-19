@@ -98,9 +98,12 @@ def add_asset(
     Adiciona um ativo à carteira do usuário autenticado.
     O ticker é validado pela FK com b3_assets — só aceita ativos reais da B3.
 
-    Dispara em segundo plano o backfill dos documentos recentes, para o
-    dashboard já ter conteúdo. O backfill não notifica ninguém e não atrasa
-    a resposta.
+    Se o ticker ainda não tem nenhum relatório no banco, dispara em segundo
+    plano o backfill dos últimos 2 meses, para o dashboard não nascer vazio.
+    Quando já há relatórios, o job diário vem acumulando e não há o que buscar.
+
+    Devolve backfill_queued para a interface saber se deve avisar o usuário
+    de que os relatórios vão levar alguns minutos para aparecer.
     """
     supabase = get_supabase()
 
@@ -125,9 +128,22 @@ def add_asset(
         .execute()
     )
 
-    background_tasks.add_task(backfill_asset_sync, body.ticker)
+    # Backfill só para ticker sem histórico. backfill_asset() repete essa
+    # verificação por dentro, o que também cobre duas pessoas adicionando o
+    # mesmo ativo ao mesmo tempo.
+    has_reports = bool(
+        supabase.table("reports")
+        .select("id")
+        .eq("ticker", body.ticker)
+        .limit(1)
+        .execute()
+        .data
+    )
 
-    return {"asset": result.data[0]}
+    if not has_reports:
+        background_tasks.add_task(backfill_asset_sync, body.ticker)
+
+    return {"asset": result.data[0], "backfill_queued": not has_reports}
 
 
 @router.delete("/{asset_id}", status_code=status.HTTP_204_NO_CONTENT)
