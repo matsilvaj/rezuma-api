@@ -549,6 +549,133 @@ def send_consolidated_report(
         return False
 
 
+def send_backfill_ready(
+    to_email: str,
+    user_name: str | None,
+    found: list[dict],
+) -> bool:
+    """
+    Avisa que a busca inicial de relatórios terminou, com link para o app.
+
+    found: [{"ticker": "BBAS3", "count": 9}, ...] — apenas ativos que renderam
+    algum relatório. Chamado uma vez por lote, quando o último backfill do
+    usuário termina.
+    """
+    if not found:
+        return False
+
+    import html as _html
+
+    total   = sum(f["count"] for f in found)
+    tickers = [f["ticker"] for f in found]
+    plural  = "s" if total != 1 else ""
+
+    if len(tickers) == 1:
+        subject = f"{tickers[0]}: {total} relatório{plural} pronto{plural}"
+    else:
+        subject = f"{total} relatório{plural} pronto{plural} dos seus novos ativos"
+
+    first_name = (user_name or "").split()[0] if user_name else None
+    greeting = f"Olá, {_html.escape(first_name)}!" if first_name else "Olá!"
+
+    rows = ""
+    for i, item in enumerate(found):
+        n = item["count"]
+        rows += (
+            f'<tr><td style="padding:12px 0;'
+            f'{"" if i == len(found) - 1 else f"border-bottom:1px solid {RZ_BORDER};"}">'
+            f'<span style="font-family:{MONO};font-size:14px;font-weight:700;'
+            f'color:{RZ_TEXT};">{item["ticker"]}</span>'
+            f'<span style="font-family:{SANS};font-size:13px;color:{RZ_TEXT_S};">'
+            f'&nbsp;&nbsp;{n} relatório{"s" if n != 1 else ""}</span>'
+            f'</td></tr>'
+        )
+
+    dashboard_url = f"{settings.FRONTEND_URL.rstrip('/')}/dashboard"
+
+    html_body = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Rezuma</title>
+</head>
+<body style="margin:0;padding:0;background:{RZ_BG};">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:{RZ_BG};">
+<tr><td align="center" style="padding:36px 16px;">
+<table width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;">
+
+  <tr><td style="padding:0 0 28px 0;">
+    <span style="font-family:{SANS};font-size:17px;font-weight:700;color:{RZ_TEXT};
+                 letter-spacing:-0.5px;">rezuma</span>
+  </td></tr>
+
+  <tr><td style="padding:0 0 24px 0;">
+    <p style="font-family:{SANS};font-size:20px;font-weight:700;color:{RZ_TEXT};
+              letter-spacing:-0.3px;margin:0 0 4px 0;">{greeting}</p>
+    <p style="font-family:{SANS};font-size:14px;line-height:1.7;color:{RZ_TEXT_S};margin:0;">
+      Terminamos de buscar as publicações dos últimos 2 meses dos ativos que
+      você adicionou. Já estão resumidas e disponíveis no seu painel.
+    </p>
+  </td></tr>
+
+  <tr><td style="background:{RZ_SURFACE};border:1px solid {RZ_BORDER};
+                 border-radius:10px;padding:6px 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0">{rows}</table>
+  </td></tr>
+
+  <tr><td style="padding:24px 0 0 0;">
+    <a href="{dashboard_url}"
+       style="display:inline-block;font-family:{SANS};font-size:14px;font-weight:600;
+              color:{RZ_BG};background:{RZ_TEXT};text-decoration:none;
+              padding:12px 24px;border-radius:8px;">ver meus relatórios</a>
+  </td></tr>
+
+  <tr><td style="padding:28px 0 0 0;border-top:1px solid {RZ_BORDER};text-align:center;">
+    <p style="font-family:{SANS};font-size:11px;color:rgba(237,237,234,0.15);margin:0;">
+      A partir de agora você recebe cada nova publicação assim que sair.
+    </p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>"""
+
+    text_lines = [
+        greeting,
+        "",
+        "Terminamos de buscar as publicações dos últimos 2 meses dos ativos que você adicionou.",
+        "",
+    ]
+    for item in found:
+        n = item["count"]
+        text_lines.append(f"{item['ticker']}: {n} relatório{'s' if n != 1 else ''}")
+    text_lines += ["", f"Ver no Rezuma: {dashboard_url}"]
+
+    try:
+        resend.Emails.send({
+            "from": settings.EMAIL_FROM,
+            "to": [to_email],
+            "subject": subject,
+            "html": html_body,
+            "text": "\n".join(text_lines),
+            "headers": {
+                "List-Unsubscribe": (
+                    f"<mailto:{settings.EMAIL_FROM.split('<')[-1].rstrip('>')}?subject=unsubscribe>"
+                ),
+                "X-Entity-Ref-ID": f"rezuma-backfill-{'-'.join(tickers)}",
+            },
+        })
+        logger.info(f"Aviso de backfill enviado para {to_email} — {tickers}")
+        return True
+    except Exception as e:
+        logger.error(f"Erro ao enviar aviso de backfill para {to_email}: {e}")
+        return False
+
+
 def send_admin_alert(subject: str, body: str) -> None:
     if not settings.ADMIN_EMAIL:
         return

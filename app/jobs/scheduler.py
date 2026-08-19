@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import threading
 from collections import defaultdict
 from datetime import date, timedelta
 
@@ -14,11 +15,13 @@ from app.services.cvm import download_pdf as cvm_download_pdf
 from app.services.cvm import _UNSET as _UNSET_SI
 from app.services.cvm import fetch_new_documents
 from app.services.email import send_admin_alert, send_consolidated_report
+from app.services.email import send_backfill_ready as send_backfill_ready_email
 from app.services.fnet import download_pdf as fnet_download_pdf
 from app.services.statusinvest import fetch_fii_dividends as si_fetch_dividends
 from app.services.statusinvest import fetch_fii_documents as si_fetch_documents
 from app.services.pdf import extract_text
 from app.services.telegram import send_asset_report
+from app.services.telegram import send_backfill_ready as send_backfill_ready_telegram
 from app.services.tradingview import fetch_quotes
 
 logger = logging.getLogger(__name__)
@@ -448,14 +451,86 @@ def _log_notification(supabase, user_id: str, report_id: str, channel: str, succ
 BACKFILL_DAYS = 60
 
 
-async def backfill_asset(ticker: str, days_back: int = BACKFILL_DAYS) -> None:
-    """
-    Popula o dashboard com os documentos recentes de um ativo recém-adicionado,
-    para a tela não nascer vazia para quem acabou de entrar.
+# ── Lotes de backfill ─────────────────────────────────────────────────────
+# Quem acaba de assinar cadastra vários ativos seguidos, e cada cadastro
+# dispara um backfill. Para não mandar uma mensagem por ativo, o usuário só é
+# avisado quando o último backfill do lote termina.
+#
+# O estado vive em memória: se o processo reiniciar no meio, o lote se perde e
+# ninguém é avisado. É aceitável — o pior caso é a ausência de um aviso, não um
+# dado errado. Vira tabela quando houver mais de uma instância servindo.
 
-    Não envia e-mail nem Telegram: são documentos antigos e o usuário não pediu
-    para ser avisado sobre eles. Se o ticker já tem relatórios no banco, não faz
-    nada — os relatórios são compartilhados entre todos que monitoram o ativo.
+_backfill_lock = threading.Lock()
+_backfill_batches: dict[str, dict] = {}
+
+
+def register_backfill(user_id: str, ticker: str) -> None:
+    """
+    Marca um backfill como pendente. Chamado na rota, antes de agendar a task,
+    para que um cadastro rápido em sequência caia todo no mesmo lote.
+    """
+    with _backfill_lock:
+        lote = _backfill_batches.setdefault(user_id, {"pendentes": set(), "achados": []})
+        lote["pendentes"].add(ticker.upper())
+
+
+def _complete_backfill(user_id: str, ticker: str, report_count: int) -> list[dict] | None:
+    """
+    Fecha a pendência de um ticker.
+
+    Devolve os resultados do lote apenas quando este era o último pendente do
+    usuário E algum ativo rendeu relatório. Nos demais casos devolve None e
+    nada é enviado: sem resultado não há o que avisar.
+    """
+    with _backfill_lock:
+        lote = _backfill_batches.get(user_id)
+        if not lote:
+            return None
+
+        lote["pendentes"].discard(ticker.upper())
+        if report_count > 0:
+            lote["achados"].append({"ticker": ticker.upper(), "count": report_count})
+
+        if lote["pendentes"]:
+            return None
+
+        _backfill_batches.pop(user_id, None)
+        return lote["achados"] or None
+
+
+async def _notify_backfill_ready(user_id: str, achados: list[dict]) -> None:
+    """Avisa, nos canais que o usuário escolheu, que a busca inicial terminou."""
+    supabase = get_supabase()
+
+    user_auth = supabase.auth.admin.get_user_by_id(user_id)
+    email = user_auth.user.email if user_auth and user_auth.user else None
+
+    prof_res = (
+        supabase.table("user_profiles")
+        .select("full_name, notify_email, notify_telegram, telegram_chat_id")
+        .eq("id", user_id)
+        .limit(1)
+        .execute()
+    )
+    profile = (prof_res.data or [{}])[0] if prof_res else {}
+
+    if profile.get("notify_email", True) and email:
+        send_backfill_ready_email(
+            to_email=email,
+            user_name=profile.get("full_name"),
+            found=achados,
+        )
+
+    chat_id = profile.get("telegram_chat_id")
+    if profile.get("notify_telegram", False) and chat_id:
+        await send_backfill_ready_telegram(chat_id, achados)
+
+
+async def _run_backfill(ticker: str, days_back: int) -> int:
+    """
+    Executa a busca de documentos do ticker e devolve quantos relatórios ele
+    tem no banco ao final. Devolve 0 quando não havia o que buscar ou a busca
+    falhou — nesses casos o usuário não é avisado.
     """
     ticker = ticker.upper()
     supabase = get_supabase()
@@ -469,7 +544,7 @@ async def backfill_asset(ticker: str, days_back: int = BACKFILL_DAYS) -> None:
     )
     if existing.data:
         logger.info(f"Backfill {ticker}: já há relatórios no banco, nada a fazer.")
-        return
+        return 0
 
     # Busca o ticker direto no catálogo: o backfill não depende da tabela
     # assets, então não importa se o cadastro do usuário já está visível.
@@ -482,12 +557,12 @@ async def backfill_asset(ticker: str, days_back: int = BACKFILL_DAYS) -> None:
     )
     if not cat.data:
         logger.warning(f"Backfill {ticker}: ticker não está no catálogo b3_assets.")
-        return
+        return 0
 
     row = cat.data[0]
     if not row.get("cnpj"):
         logger.warning(f"Backfill {ticker}: sem CNPJ no catálogo, não dá para buscar documentos.")
-        return
+        return 0
 
     logger.info(f"Backfill {ticker}: buscando documentos dos últimos {days_back} dias...")
     try:
@@ -510,14 +585,50 @@ async def backfill_asset(ticker: str, days_back: int = BACKFILL_DAYS) -> None:
             .execute()
         ).count or 0
         logger.info(f"Backfill {ticker}: concluído, {n} relatório(s) no banco.")
+        return n
     except Exception as e:
         # Falhar aqui não pode derrubar o cadastro do ativo, que já foi gravado
         logger.error(f"Backfill {ticker} falhou: {e}", exc_info=True)
 
+    return 0
 
-def backfill_asset_sync(ticker: str, days_back: int = BACKFILL_DAYS) -> None:
+
+async def backfill_asset(
+    ticker: str,
+    user_id: str | None = None,
+    days_back: int = BACKFILL_DAYS,
+) -> None:
+    """
+    Popula o dashboard com os documentos recentes de um ativo recém-adicionado,
+    para a tela não nascer vazia para quem acabou de entrar.
+
+    Os relatórios encontrados não viram notificação: são publicações antigas
+    que o usuário não pediu para acompanhar. O que ele recebe, quando todos os
+    backfills do cadastro terminam, é um único aviso de que ficaram prontos.
+    """
+    ticker = ticker.upper()
+    encontrados = 0
+    try:
+        encontrados = await _run_backfill(ticker, days_back)
+    finally:
+        # Sempre fecha a pendência, mesmo em falha: senão o lote nunca conclui
+        # e o aviso dos outros ativos do mesmo cadastro nunca sai.
+        if user_id:
+            lote = _complete_backfill(user_id, ticker, encontrados)
+            if lote:
+                try:
+                    await _notify_backfill_ready(user_id, lote)
+                except Exception as e:
+                    logger.error(f"Aviso de backfill para {user_id} falhou: {e}", exc_info=True)
+
+
+def backfill_asset_sync(
+    ticker: str,
+    user_id: str | None = None,
+    days_back: int = BACKFILL_DAYS,
+) -> None:
     """Ponte para o BackgroundTasks do FastAPI, que executa funções síncronas."""
-    _run_async(backfill_asset(ticker, days_back))
+    _run_async(backfill_asset(ticker, user_id, days_back))
 
 
 def job_fetch_and_process_reports() -> None:

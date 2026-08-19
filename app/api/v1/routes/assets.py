@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, R
 from app.core.database import get_supabase
 from app.core.rate_limit import is_rate_limited
 from app.core.security import get_user_id
-from app.jobs.scheduler import backfill_asset_sync
+from app.jobs.scheduler import backfill_asset_sync, register_backfill
 from app.models.schemas import AssetCreate
 
 router = APIRouter()
@@ -141,7 +141,10 @@ def add_asset(
     )
 
     if not has_reports:
-        background_tasks.add_task(backfill_asset_sync, body.ticker)
+        # Registrar antes de agendar: quem cadastra vários ativos seguidos cai
+        # no mesmo lote e recebe um aviso só, quando o último terminar.
+        register_backfill(user_id, body.ticker)
+        background_tasks.add_task(backfill_asset_sync, body.ticker, user_id)
 
     return {"asset": result.data[0], "backfill_queued": not has_reports}
 

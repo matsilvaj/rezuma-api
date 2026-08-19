@@ -56,6 +56,47 @@ async def send_message(chat_id: int | str, text: str) -> bool:
         return False
 
 
+async def send_backfill_ready(chat_id: str, found: list[dict]) -> bool:
+    """
+    Avisa que a busca inicial de relatórios terminou, com link para o app.
+
+    found: [{"ticker": "BBAS3", "count": 9}, ...] — só ativos que renderam
+    algum relatório. Enviado uma vez por lote de cadastro.
+    """
+    if not settings.TELEGRAM_BOT_TOKEN or not found:
+        return False
+
+    total  = sum(f["count"] for f in found)
+    plural = "s" if total != 1 else ""
+
+    linhas = [
+        f"<b>{total} relatório{plural} pronto{plural}</b>",
+        "",
+        "Terminamos de buscar as publicações dos últimos 2 meses dos ativos que você adicionou:",
+        "",
+    ]
+    for item in found:
+        n = item["count"]
+        linhas.append(f"<code>{item['ticker']}</code> · {n} relatório{'s' if n != 1 else ''}")
+
+    url = f"{settings.FRONTEND_URL.rstrip('/')}/dashboard"
+    linhas += ["", f'<a href="{url}">ver no Rezuma</a>']
+
+    try:
+        async with Bot(token=settings.TELEGRAM_BOT_TOKEN) as bot:
+            await bot.send_message(
+                chat_id=int(chat_id),
+                text="\n".join(linhas),
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True,
+            )
+        logger.info(f"Aviso de backfill enviado no Telegram para chat_id {chat_id}")
+        return True
+    except TelegramError as e:
+        logger.error(f"Erro ao enviar aviso de backfill para chat_id {chat_id}: {e}")
+        return False
+
+
 async def send_consolidated_reports(
     chat_id: str,
     reports_by_ticker: dict[str, list[dict]],
