@@ -30,7 +30,11 @@ def _run_async(coro) -> None:
     asyncio.run(coro)
 
 
-async def _process_pipeline(days_back: int = 1, ticker_filter: str | None = None) -> None:
+async def _process_pipeline(
+    days_back: int = 1,
+    ticker_filter: str | None = None,
+    notify: bool = True,
+) -> None:
     """
     Pipeline principal do Rezuma:
     1. Busca ativos monitorados e documentos novos na CVM
@@ -38,6 +42,9 @@ async def _process_pipeline(days_back: int = 1, ticker_filter: str | None = None
     3. Consolida por usuário e envia uma notificação por canal
 
     ticker_filter: se informado, processa apenas esse ticker (útil para testes).
+    notify:        com False, grava os relatórios no banco e não envia nada.
+                   Usado no backfill de um ativo recém-adicionado, que serve só
+                   para o dashboard não nascer vazio.
     """
     since_date = date.today() - timedelta(days=days_back)
     supabase = get_supabase()
@@ -205,6 +212,10 @@ async def _process_pipeline(days_back: int = 1, ticker_filter: str | None = None
                     report_id = result.data[0]["id"]
                     logger.info(f"Relatório salvo: {ticker} — {doc['title']}")
 
+                # No backfill não há notificação: o relatório já está gravado
+                if not notify:
+                    continue
+
                 # Descobre quais usuários têm esse ativo na carteira
                 users_result = (
                     supabase.table("assets")
@@ -266,6 +277,9 @@ async def _process_pipeline(days_back: int = 1, ticker_filter: str | None = None
             except Exception as e:
                 logger.error(f"Erro ao processar {doc.get('source_url')}: {e}")
                 continue
+
+    if not notify:
+        return
 
     # Verifica saúde das fontes de dados e notifica o administrador se algo parece quebrado
     _check_data_source_health(
@@ -422,6 +436,46 @@ def _log_notification(supabase, user_id: str, report_id: str, channel: str, succ
         "channel": channel,
         "status": "sent" if success else "failed",
     }).execute()
+
+
+BACKFILL_DAYS = 60
+
+
+async def backfill_asset(ticker: str, days_back: int = BACKFILL_DAYS) -> None:
+    """
+    Popula o dashboard com os documentos recentes de um ativo recém-adicionado,
+    para a tela não nascer vazia para quem acabou de entrar.
+
+    Não envia e-mail nem Telegram: são documentos antigos e o usuário não pediu
+    para ser avisado sobre eles. Se o ticker já tem relatórios no banco, não faz
+    nada — os relatórios são compartilhados entre todos que monitoram o ativo.
+    """
+    ticker = ticker.upper()
+    supabase = get_supabase()
+
+    existing = (
+        supabase.table("reports")
+        .select("id")
+        .eq("ticker", ticker)
+        .limit(1)
+        .execute()
+    )
+    if existing.data:
+        logger.info(f"Backfill {ticker}: já há relatórios no banco, nada a fazer.")
+        return
+
+    logger.info(f"Backfill {ticker}: buscando documentos dos últimos {days_back} dias...")
+    try:
+        await _process_pipeline(days_back=days_back, ticker_filter=ticker, notify=False)
+        logger.info(f"Backfill {ticker}: concluído.")
+    except Exception as e:
+        # Falhar aqui não pode derrubar o cadastro do ativo, que já foi gravado
+        logger.error(f"Backfill {ticker} falhou: {e}")
+
+
+def backfill_asset_sync(ticker: str, days_back: int = BACKFILL_DAYS) -> None:
+    """Ponte para o BackgroundTasks do FastAPI, que executa funções síncronas."""
+    _run_async(backfill_asset(ticker, days_back))
 
 
 def job_fetch_and_process_reports() -> None:

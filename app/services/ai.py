@@ -98,7 +98,9 @@ DESTAQUE: [2 a 3 frases curtas: o resultado do trimestre com o número principal
 
 MOVIMENTAÇÕES: [1 a 2 frases sobre o que mudou de concreto: dívida, investimentos, dividendos anunciados. Não repita o DESTAQUE.]
 
-ATENÇÃO: [1 frase com o principal risco ou guidance negativo. Omita esta linha inteira se não houver.]\
+ATENÇÃO: [1 frase com o principal risco ou guidance negativo. Omita esta linha inteira se não houver.]
+
+IMPACTO: [1 a 2 frases sobre o efeito prático disso para quem já tem o ativo: o que tende a acontecer com os rendimentos, com o risco ou com o caixa da empresa daqui para frente. Descreva a consequência, nunca o que fazer: não diga para comprar, vender ou manter, e não sugira que é hora de entrar ou sair. Omita esta linha inteira se o documento não permitir afirmar nada concreto.]\
 """,
 
     "dfp": """\
@@ -108,7 +110,9 @@ DESTAQUE: [2 a 3 frases curtas: o resultado do ano com o número principal em **
 
 MOVIMENTAÇÕES: [1 a 2 frases sobre o que mudou de concreto no ano: dívida, dividendos pagos, investimentos. Não repita o DESTAQUE.]
 
-ATENÇÃO: [1 frase com o principal risco ou tendência negativa. Omita esta linha inteira se não houver.]\
+ATENÇÃO: [1 frase com o principal risco ou tendência negativa. Omita esta linha inteira se não houver.]
+
+IMPACTO: [1 a 2 frases sobre o efeito prático disso para quem já tem o ativo: o que tende a acontecer com os rendimentos, com o risco ou com o caixa da empresa daqui para frente. Descreva a consequência, nunca o que fazer: não diga para comprar, vender ou manter, e não sugira que é hora de entrar ou sair. Omita esta linha inteira se o documento não permitir afirmar nada concreto.]\
 """,
 
     "apresentacao_resultados": """\
@@ -118,7 +122,9 @@ DESTAQUE: [2 a 3 frases curtas: o resultado do trimestre com o número principal
 
 MOVIMENTAÇÕES: [1 a 2 frases sobre o que mudou de concreto: dívida, dividendo por ação, guidance divulgado. Não repita o DESTAQUE.]
 
-ATENÇÃO: [1 frase com o principal risco. Omita esta linha inteira se não houver.]\
+ATENÇÃO: [1 frase com o principal risco. Omita esta linha inteira se não houver.]
+
+IMPACTO: [1 a 2 frases sobre o efeito prático disso para quem já tem o ativo: o que tende a acontecer com os rendimentos, com o risco ou com o caixa da empresa daqui para frente. Descreva a consequência, nunca o que fazer: não diga para comprar, vender ou manter, e não sugira que é hora de entrar ou sair. Omita esta linha inteira se o documento não permitir afirmar nada concreto.]\
 """,
 
     "fato_relevante": """\
@@ -128,7 +134,9 @@ DESTAQUE: [2 a 3 frases curtas: o que foi anunciado com o dado principal em **ne
 
 MOVIMENTAÇÕES: [1 a 2 frases sobre o que muda na prática em dividendo, risco ou oportunidade. Não repita o DESTAQUE.]
 
-ATENÇÃO: [1 frase com o principal risco. Omita esta linha inteira se não houver.]\
+ATENÇÃO: [1 frase com o principal risco. Omita esta linha inteira se não houver.]
+
+IMPACTO: [1 a 2 frases sobre o efeito prático disso para quem já tem o ativo: o que tende a acontecer com os rendimentos, com o risco ou com o caixa da empresa daqui para frente. Descreva a consequência, nunca o que fazer: não diga para comprar, vender ou manter, e não sugira que é hora de entrar ou sair. Omita esta linha inteira se o documento não permitir afirmar nada concreto.]\
 """,
 }
 
@@ -154,7 +162,9 @@ TERMOS JÁ COBERTOS PELO GLOSSÁRIO (use livremente, não explique):
 ESTRUTURA DO CAMPO "summary" (regra crítica):
 O campo "summary" é UMA STRING de texto puro, nunca um objeto JSON.
 Cada seção começa em sua própria linha, com uma linha em branco entre elas.
-Os rótulos "DESTAQUE:", "MOVIMENTAÇÕES:" e "ATENÇÃO:" são literais e obrigatórios (exceto ATENÇÃO, que pode ser omitida).
+Os rótulos "DESTAQUE:", "MOVIMENTAÇÕES:", "ATENÇÃO:" e "IMPACTO:" são literais e devem ser escritos exatamente assim.
+DESTAQUE e MOVIMENTAÇÕES são obrigatórios. ATENÇÃO e IMPACTO são opcionais: só aparecem no formato pedido e só quando há o que dizer.
+IMPACTO, quando presente, é sempre a última seção.
 NUNCA junte o conteúdo de várias seções em uma só.
 
 EXEMPLO DE SAÍDA CORRETA para o campo "summary":

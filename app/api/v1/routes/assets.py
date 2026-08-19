@@ -1,10 +1,11 @@
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
 
 from app.core.database import get_supabase
 from app.core.rate_limit import is_rate_limited
 from app.core.security import get_user_id
+from app.jobs.scheduler import backfill_asset_sync
 from app.models.schemas import AssetCreate
 
 router = APIRouter()
@@ -88,10 +89,18 @@ def list_assets(user_id: str = Depends(get_user_id)):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def add_asset(body: AssetCreate, user_id: str = Depends(get_user_id)):
+def add_asset(
+    body: AssetCreate,
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_user_id),
+):
     """
     Adiciona um ativo à carteira do usuário autenticado.
     O ticker é validado pela FK com b3_assets — só aceita ativos reais da B3.
+
+    Dispara em segundo plano o backfill dos documentos recentes, para o
+    dashboard já ter conteúdo. O backfill não notifica ninguém e não atrasa
+    a resposta.
     """
     supabase = get_supabase()
 
@@ -115,6 +124,8 @@ def add_asset(body: AssetCreate, user_id: str = Depends(get_user_id)):
         .insert({"user_id": user_id, "ticker": body.ticker})
         .execute()
     )
+
+    background_tasks.add_task(backfill_asset_sync, body.ticker)
 
     return {"asset": result.data[0]}
 

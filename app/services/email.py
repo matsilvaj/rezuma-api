@@ -214,6 +214,15 @@ def _summary_sections(text: str) -> str:
                     f'</td></tr></table>'
                 )
 
+        elif re.match(r"^IMPACTO\s*:", line, re.IGNORECASE):
+            body = re.sub(r"^IMPACTO\s*:\s*", "", line, flags=re.IGNORECASE).strip()
+            if body:
+                out.append(
+                    DIVIDER
+                    + f'<p style="{LABEL}">O que muda para você</p>'
+                    + f'<p style="{BODY}">{_md(body)}</p>'
+                )
+
         elif line.startswith(">"):
             body = line.lstrip(">").strip()
             out.append(
