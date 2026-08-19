@@ -234,7 +234,13 @@ def summarize(
             raw = parts[1] if len(parts) >= 2 else raw
             if raw.startswith("json"):
                 raw = raw[4:].strip()
-        data = json.loads(raw)
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            # O resumo tem seções separadas por linha em branco e o modelo
+            # costuma escrever essas quebras literais dentro da string JSON,
+            # o que o parser estrito rejeita. strict=False as aceita.
+            data = json.loads(raw, strict=False)
         summary_raw = data.get("summary", "")
 
         # Modelo às vezes retorna summary como objeto {DESTAQUE: ..., MOVIMENTAÇÕES: ...}

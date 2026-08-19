@@ -34,6 +34,7 @@ async def _process_pipeline(
     days_back: int = 1,
     ticker_filter: str | None = None,
     notify: bool = True,
+    assets_override: list[dict] | None = None,
 ) -> None:
     """
     Pipeline principal do Rezuma:
@@ -45,18 +46,24 @@ async def _process_pipeline(
     notify:        com False, grava os relatórios no banco e não envia nada.
                    Usado no backfill de um ativo recém-adicionado, que serve só
                    para o dashboard não nascer vazio.
+    assets_override: processa exatamente esses ativos em vez de consultar a
+                   tabela assets. Cada item no formato
+                   {"ticker": str, "b3_assets": {"name", "cnpj", "type"}}.
     """
     since_date = date.today() - timedelta(days=days_back)
     supabase = get_supabase()
 
-    q = supabase.table("assets").select("ticker, b3_assets(name, cnpj, type)")
-    if ticker_filter:
-        q = q.eq("ticker", ticker_filter.upper())
-    assets_result = q.execute()
+    if assets_override is not None:
+        rows = assets_override
+    else:
+        q = supabase.table("assets").select("ticker, b3_assets(name, cnpj, type)")
+        if ticker_filter:
+            q = q.eq("ticker", ticker_filter.upper())
+        rows = q.execute().data or []
 
     seen_tickers: set[str] = set()
     unique_assets = []
-    for row in assets_result.data:
+    for row in rows:
         ticker = row["ticker"]
         if ticker not in seen_tickers:
             seen_tickers.add(ticker)
@@ -464,13 +471,48 @@ async def backfill_asset(ticker: str, days_back: int = BACKFILL_DAYS) -> None:
         logger.info(f"Backfill {ticker}: já há relatórios no banco, nada a fazer.")
         return
 
+    # Busca o ticker direto no catálogo: o backfill não depende da tabela
+    # assets, então não importa se o cadastro do usuário já está visível.
+    cat = (
+        supabase.table("b3_assets")
+        .select("ticker, name, cnpj, type")
+        .eq("ticker", ticker)
+        .limit(1)
+        .execute()
+    )
+    if not cat.data:
+        logger.warning(f"Backfill {ticker}: ticker não está no catálogo b3_assets.")
+        return
+
+    row = cat.data[0]
+    if not row.get("cnpj"):
+        logger.warning(f"Backfill {ticker}: sem CNPJ no catálogo, não dá para buscar documentos.")
+        return
+
     logger.info(f"Backfill {ticker}: buscando documentos dos últimos {days_back} dias...")
     try:
-        await _process_pipeline(days_back=days_back, ticker_filter=ticker, notify=False)
-        logger.info(f"Backfill {ticker}: concluído.")
+        await _process_pipeline(
+            days_back=days_back,
+            notify=False,
+            assets_override=[{
+                "ticker": ticker,
+                "b3_assets": {
+                    "name": row.get("name"),
+                    "cnpj": row.get("cnpj"),
+                    "type": row.get("type"),
+                },
+            }],
+        )
+        n = (
+            supabase.table("reports")
+            .select("id", count="exact")
+            .eq("ticker", ticker)
+            .execute()
+        ).count or 0
+        logger.info(f"Backfill {ticker}: concluído, {n} relatório(s) no banco.")
     except Exception as e:
         # Falhar aqui não pode derrubar o cadastro do ativo, que já foi gravado
-        logger.error(f"Backfill {ticker} falhou: {e}")
+        logger.error(f"Backfill {ticker} falhou: {e}", exc_info=True)
 
 
 def backfill_asset_sync(ticker: str, days_back: int = BACKFILL_DAYS) -> None:
