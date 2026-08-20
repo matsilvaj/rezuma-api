@@ -51,19 +51,39 @@ METRIC_LABELS: dict[str, str] = {
     "margem_liquida_percentual": "margem líquida",
     "divida_liquida_ebitda":     "dívida líq./EBITDA",
     "dividendo_por_acao":        "dividendo por ação",
+    "patrimonio_liquido":        "patrimônio líquido",
+    "roe_percentual":            "retorno sobre patrimônio",
+    "indice_basileia":           "índice de Basileia",
+    "indice_eficiencia_percentual": "índice de eficiência",
+    "margem_financeira":         "margem financeira",
 }
 
-ACCENT_METRICS = {
-    "rendimento_por_cota", "dy_percentual", "dy_anualizado",
-    "dividendo_por_acao", "margem_liquida_percentual", "margem_ebitda_percentual",
-}
-
-PRIORITY_METRICS = [
-    "rendimento_por_cota", "dy_percentual", "dy_anualizado",
-    "vacancia_percentual", "pvp",
-    "lucro_liquido", "receita_liquida", "margem_liquida_percentual",
-    "divida_liquida_ebitda", "dividendo_por_acao",
+# Espelha pickPriority() do dashboard: a ordem certa depende do que o ativo é,
+# e o tipo é deduzido das métricas presentes — só banco reporta Basileia, só
+# FII reporta vacância.
+PRIORITY_FII = [
+    "rendimento_por_cota", "dy_percentual", "dy_anualizado", "vacancia_percentual",
+    "pvp", "valor_patrimonial_cota", "inadimplencia_percentual", "patrimonio_liquido",
 ]
+
+PRIORITY_BANCO = [
+    "lucro_liquido", "roe_percentual", "inadimplencia_percentual", "indice_basileia",
+    "margem_financeira", "indice_eficiencia_percentual", "margem_liquida_percentual",
+    "dividendo_por_acao",
+]
+
+PRIORITY_EMPRESA = [
+    "lucro_liquido", "receita_liquida", "margem_liquida_percentual", "divida_liquida_ebitda",
+    "margem_ebitda_percentual", "ebitda", "roe_percentual", "dividendo_por_acao",
+]
+
+
+def _pick_priority(m: dict) -> list[str]:
+    if any(m.get(k) is not None for k in ("rendimento_por_cota", "vacancia_percentual", "pvp")):
+        return PRIORITY_FII
+    if any(m.get(k) is not None for k in ("indice_basileia", "indice_eficiencia_percentual", "margem_financeira")):
+        return PRIORITY_BANCO
+    return PRIORITY_EMPRESA
 
 METRIC_SIZES = [22, 18, 16, 14]
 
@@ -78,11 +98,11 @@ def _fmt_metric(key: str, value) -> str:
 
     if "rendimento" in key or "valor_patrimonial" in key or key == "dividendo_por_acao":
         return f"R${value:.2f}".replace(".", ",")
-    if "percentual" in key or key in ("dy_percentual", "dy_anualizado"):
+    if "percentual" in key or key in ("dy_percentual", "dy_anualizado", "indice_basileia"):
         return f"{value:.1f}".replace(".", ",") + "%"
     if key in ("pvp", "divida_liquida_ebitda"):
         return f"{value:.2f}".replace(".", ",") + "x"
-    if key in ("receita_liquida", "lucro_liquido", "ebitda", "patrimonio_liquido"):
+    if key in ("receita_liquida", "lucro_liquido", "ebitda", "patrimonio_liquido", "margem_financeira"):
         return _fmt_money(value)
     return str(value)
 
@@ -110,7 +130,7 @@ def _top_metrics(metrics: dict | None) -> list[dict]:
     if not metrics or not isinstance(metrics, dict):
         return []
     result: list[dict] = []
-    for key in PRIORITY_METRICS:
+    for key in _pick_priority(metrics):
         if metrics.get(key) is not None:
             fmt = _fmt_metric(key, metrics[key])
             if fmt:

@@ -46,6 +46,11 @@ _METRICS_SCHEMAS: dict[str, dict] = {
         "ebitda": "float | null — em R$",
         "margem_liquida_percentual": "float | null",
         "divida_liquida_ebitda": "float | null",
+        "roe_percentual": "float | null — retorno sobre o patrimônio líquido (%)",
+        "inadimplencia_percentual": "float | null — inadimplência acima de 90 dias (%), típico de banco",
+        "indice_basileia": "float | null — índice de Basileia (%), só banco",
+        "indice_eficiencia_percentual": "float | null — índice de eficiência (%), só banco",
+        "margem_financeira": "float | null — margem financeira bruta em R$, só banco",
         "trimestre_referencia": "string | null — ex: '1T2025'",
         "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
         "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
@@ -56,6 +61,11 @@ _METRICS_SCHEMAS: dict[str, dict] = {
         "ebitda": "float | null — em R$",
         "margem_liquida_percentual": "float | null",
         "divida_liquida_ebitda": "float | null",
+        "roe_percentual": "float | null — retorno sobre o patrimônio líquido (%)",
+        "inadimplencia_percentual": "float | null — inadimplência acima de 90 dias (%), típico de banco",
+        "indice_basileia": "float | null — índice de Basileia (%), só banco",
+        "indice_eficiencia_percentual": "float | null — índice de eficiência (%), só banco",
+        "margem_financeira": "float | null — margem financeira bruta em R$, só banco",
         "ano_referencia": "string | null — ex: '2024'",
         "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
         "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
@@ -69,6 +79,11 @@ _METRICS_SCHEMAS: dict[str, dict] = {
         "divida_liquida_ebitda": "float | null",
         "dividendo_por_acao": "float | null — R$/ação",
         "trimestre_referencia": "string | null — ex: '2T2026'",
+        "roe_percentual": "float | null — retorno sobre o patrimônio líquido (%)",
+        "inadimplencia_percentual": "float | null — inadimplência acima de 90 dias (%), típico de banco",
+        "indice_basileia": "float | null — índice de Basileia (%), só banco",
+        "indice_eficiencia_percentual": "float | null — índice de eficiência (%), só banco",
+        "margem_financeira": "float | null — margem financeira bruta em R$, só banco",
         "guidance_receita": "string | null — guidance de receita se divulgado",
         "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
         "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
@@ -170,6 +185,7 @@ TERMOS JÁ COBERTOS PELO GLOSSÁRIO (use livremente, não explique):
 6. Retorne APENAS JSON válido sem markdown.
 7. NUNCA use o caractere "—" (travessão/em dash) nem "–" (en dash) no texto. Substitua por vírgula, dois-pontos ou reescreva a frase.
 8. NUNCA use emojis, símbolos de bullet (◆ • → ▸) ou qualquer marcador de lista.
+9. Arredonde valor em dinheiro para no máximo 2 casas decimais, e 4 casas só quando for por ação ou por cota. Escreva "R$ 0,1025 por ação", nunca "R$ 0,10245643978 por ação".
 
 ESTRUTURA DO CAMPO "summary" (regra crítica):
 O campo "summary" é UMA STRING de texto puro, nunca um objeto JSON.
@@ -284,7 +300,7 @@ def summarize(
         if not isinstance(metrics, dict):
             metrics = {}
         # Descarta o que não dá para garantir: número errado é pior que ausente
-        metrics = normalize_metrics(metrics, ticker=ticker)
+        metrics = normalize_metrics(metrics, ticker=ticker, summary=summary)
         logger.info(f"Resumo gerado para {ticker}: {len(summary)} chars.")
         return summary, metrics
     except (json.JSONDecodeError, KeyError, IndexError) as e:
