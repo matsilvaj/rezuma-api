@@ -80,7 +80,7 @@ async def send_backfill_ready(chat_id: str, found: list[dict]) -> bool:
         linhas.append(f"<code>{item['ticker']}</code> · {n} relatório{'s' if n != 1 else ''}")
 
     url = f"{settings.FRONTEND_URL.rstrip('/')}/dashboard"
-    linhas += ["", f'<a href="{url}">ver no Rezuma</a>']
+    linhas += ["", f'<a href="{url}">ver relatório</a>']
 
     try:
         async with Bot(token=settings.TELEGRAM_BOT_TOKEN) as bot:
