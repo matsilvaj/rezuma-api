@@ -14,6 +14,7 @@ from app.services.b3 import is_b3_assets_empty, sync_b3_assets
 from app.services.cvm import download_pdf as cvm_download_pdf
 from app.services.cvm import _UNSET as _UNSET_SI
 from app.services.cvm import fetch_new_documents
+from app.services.doc_filter import filter_documents
 from app.services.email import send_admin_alert, send_consolidated_report
 from app.services.email import send_backfill_ready as send_backfill_ready_email
 from app.services.fnet import download_pdf as fnet_download_pdf
@@ -121,6 +122,10 @@ async def _process_pipeline(
             elif asset_type == "fiagro":
                 fnet_error_tickers.append(ticker)
             continue
+
+        # Antes da IA: derruba versão traduzida e repostagem, que custariam
+        # uma chamada cada para produzir resumo repetido.
+        documents = filter_documents(documents, ticker)
 
         # Fetch structured dividend announcements for FIIs via Status Invest
         # (bypasses FNET search/Cloudflare — uses only FNET downloadDocumento for XML)
