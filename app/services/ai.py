@@ -5,6 +5,7 @@ import anthropic
 
 from app.core.config import settings
 from app.services.glossary import known_terms
+from app.services.metrics import normalize_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,8 @@ _METRICS_SCHEMAS: dict[str, dict] = {
         "inadimplencia_percentual": "float | null — % de inadimplência",
         "patrimonio_liquido": "float | null — PL total em R$",
         "mes_referencia": "string | null — ex: '07/2026'",
+        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "informe_mensal": {
         "rendimento_por_cota": "float | null — R$/cota distribuído",
@@ -34,6 +37,8 @@ _METRICS_SCHEMAS: dict[str, dict] = {
         "inadimplencia_percentual": "float | null — % de inadimplência",
         "patrimonio_liquido": "float | null — PL total em R$",
         "mes_referencia": "string | null — ex: '01/2025'",
+        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "itr": {
         "receita_liquida": "float | null — em R$",
@@ -42,6 +47,8 @@ _METRICS_SCHEMAS: dict[str, dict] = {
         "margem_liquida_percentual": "float | null",
         "divida_liquida_ebitda": "float | null",
         "trimestre_referencia": "string | null — ex: '1T2025'",
+        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "dfp": {
         "receita_liquida": "float | null — em R$",
@@ -50,6 +57,8 @@ _METRICS_SCHEMAS: dict[str, dict] = {
         "margem_liquida_percentual": "float | null",
         "divida_liquida_ebitda": "float | null",
         "ano_referencia": "string | null — ex: '2024'",
+        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "apresentacao_resultados": {
         "receita_liquida": "float | null — em R$",
@@ -61,6 +70,8 @@ _METRICS_SCHEMAS: dict[str, dict] = {
         "dividendo_por_acao": "float | null — R$/ação",
         "trimestre_referencia": "string | null — ex: '2T2026'",
         "guidance_receita": "string | null — guidance de receita se divulgado",
+        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "fato_relevante": {
         "tipo_evento": "string | null — ex: 'dividendo_extraordinario', 'aquisicao', 'guidance', 'mudanca_gestao', 'oferta_publica'",
@@ -155,6 +166,7 @@ TERMOS JÁ COBERTOS PELO GLOSSÁRIO (use livremente, não explique):
 3. Nunca liste números soltos. Todo número precisa de contexto — se é bom ou ruim e por quê.
 4. NUNCA faça recomendações de compra, venda ou manutenção. Você traduz o que aconteceu — a decisão é do investidor.
 5. Use apenas dados do documento.
+5.1 Sobre unidade dos valores: balanços publicam em "R$ mil" ou "R$ milhões". Preencha "unidade_valores" com a unidade da tabela de onde tirou os números e "unidade_fonte" com o trecho literal que comprova isso. NÃO faça a conversão você mesmo: informe o número exatamente como está impresso e deixe a unidade separada. Se não achar a indicação de unidade no documento, deixe os dois campos nulos.
 6. Retorne APENAS JSON válido sem markdown.
 7. NUNCA use o caractere "—" (travessão/em dash) nem "–" (en dash) no texto. Substitua por vírgula, dois-pontos ou reescreva a frase.
 8. NUNCA use emojis, símbolos de bullet (◆ • → ▸) ou qualquer marcador de lista.
@@ -271,6 +283,8 @@ def summarize(
         metrics = data.get("metrics", {})
         if not isinstance(metrics, dict):
             metrics = {}
+        # Descarta o que não dá para garantir: número errado é pior que ausente
+        metrics = normalize_metrics(metrics, ticker=ticker)
         logger.info(f"Resumo gerado para {ticker}: {len(summary)} chars.")
         return summary, metrics
     except (json.JSONDecodeError, KeyError, IndexError) as e:

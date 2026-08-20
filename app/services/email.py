@@ -82,14 +82,27 @@ def _fmt_metric(key: str, value) -> str:
         return f"{value:.1f}".replace(".", ",") + "%"
     if key in ("pvp", "divida_liquida_ebitda"):
         return f"{value:.2f}".replace(".", ",") + "x"
-    if key in ("receita_liquida", "lucro_liquido", "ebitda"):
-        a = abs(value)
-        if a >= 1e9:
-            return f"R${value / 1e9:.1f}".replace(".", ",") + "bi"
-        if a >= 1e6:
-            return f"R${value / 1e6:.0f}mi"
-        return f"R${value:.0f}"
+    if key in ("receita_liquida", "lucro_liquido", "ebitda", "patrimonio_liquido"):
+        return _fmt_money(value)
     return str(value)
+
+
+def _dec1(n: float) -> str:
+    """1.0 vira "1"; 1.5 vira "1,5" — sem casa decimal inútil."""
+    return f"{n:.1f}".rstrip("0").rstrip(".").replace(".", ",") or "0"
+
+
+def _fmt_money(value: float) -> str:
+    """Espelha fmtMoney() do dashboard: escala legível e sinal antes do R$."""
+    a = abs(value)
+    sinal = "-" if value < 0 else ""
+    if a >= 1e9:
+        return f"{sinal}R${_dec1(a / 1e9)}bi"
+    if a >= 1e6:
+        return f"{sinal}R${_dec1(a / 1e6)}mi"
+    if a >= 1e3:
+        return f"{sinal}R${a / 1e3:.0f} mil"
+    return f"{sinal}R${a:.0f}"
 
 
 def _top_metrics(metrics: dict | None) -> list[dict]:
@@ -104,7 +117,6 @@ def _top_metrics(metrics: dict | None) -> list[dict]:
                 result.append({
                     "label": METRIC_LABELS.get(key, key),
                     "value": fmt,
-                    "accent": key in ACCENT_METRICS,
                 })
         if len(result) == 4:
             break
@@ -292,7 +304,7 @@ def _report_card(ticker: str, report: dict, dividends: list[dict]) -> str:
         left += '<table cellpadding="0" cellspacing="0" style="margin-top:24px;">'
         for i, m in enumerate(metrics):
             size = METRIC_SIZES[i] if i < len(METRIC_SIZES) else 14
-            color = RZ_ACCENT if m["accent"] else RZ_TEXT
+            color = RZ_TEXT
             pb = "16px" if i < len(metrics) - 1 else "0"
             left += (
                 f'<tr><td style="padding-bottom:{pb};">'
