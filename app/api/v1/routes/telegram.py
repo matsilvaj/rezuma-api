@@ -56,7 +56,7 @@ async def telegram_webhook(
     )
 
     if not row:
-        await send_message(chat_id, "❌ Link expirado ou inválido. Gere um novo link nas configurações do Rezuma.")
+        await send_message(chat_id, "Link expirado ou inválido. Gere um novo nas configurações do Rezuma.")
         return {"ok": True}
 
     user_id = row.data["id"] if hasattr(row, "data") else row["id"]
@@ -71,7 +71,7 @@ async def telegram_webhook(
 
     await send_message(
         chat_id,
-        "✅ Telegram vinculado com sucesso!\n\n"
+        "Telegram vinculado.\n\n"
         "A partir de agora você receberá os resumos dos seus ativos diretamente aqui "
         "sempre que houver novidades na sua carteira.\n\n"
         "Rezuma · seus ativos, resumidos",

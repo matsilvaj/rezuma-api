@@ -18,12 +18,6 @@ class Settings(BaseSettings):
     # Telegram
     TELEGRAM_BOT_TOKEN: str
 
-    # Stripe
-    STRIPE_SECRET_KEY: str
-    STRIPE_WEBHOOK_SECRET: str
-    STRIPE_PRICE_MONTHLY: str = ""
-    STRIPE_PRICE_ANNUAL: str = ""
-
     # App
     APP_ENV: str = "development"
     FRONTEND_URL: str = "http://localhost:3000"

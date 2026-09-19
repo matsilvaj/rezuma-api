@@ -13,7 +13,7 @@ import csv
 import io
 import logging
 import zipfile
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import httpx
 
@@ -45,6 +45,32 @@ _ACAO_DOC_TYPES = list(_IPE_CATEGORY_MAP.keys())
 
 def _normalize_cnpj(cnpj: str) -> str:
     return "".join(c for c in (cnpj or "") if c.isdigit())
+
+
+# Os arquivos da CVM são por ano e trazem todas as companhias juntas: o IPE
+# tem ~32 mil linhas. O pipeline percorre um ativo por vez, e sem cache cada
+# ação baixava e relia o arquivo inteiro só para filtrar as linhas dela. Com
+# 100 ações eram 100 downloads idênticos por execução.
+#
+# A validade cobre uma execução inteira do pipeline com folga e expira antes
+# da seguinte, para não servir dado velho. Sem lock de propósito: cada
+# execução do agendador roda num event loop novo (asyncio.run), e um
+# asyncio.Lock compartilhado entre loops quebra. No pior caso, duas execuções
+# simultâneas baixam o mesmo arquivo duas vezes, que é o comportamento de antes.
+_CACHE_TTL = timedelta(minutes=30)
+_cache: dict[str, tuple[datetime, object]] = {}
+
+
+def _cache_get(chave: str):
+    agora = datetime.now(timezone.utc)
+    for k in [k for k, (quando, _) in _cache.items() if agora - quando >= _CACHE_TTL]:
+        del _cache[k]
+    item = _cache.get(chave)
+    return item[1] if item else None
+
+
+def _cache_set(chave: str, valor) -> None:
+    _cache[chave] = (datetime.now(timezone.utc), valor)
 
 
 async def _download_bytes(url: str) -> bytes:
@@ -181,14 +207,16 @@ def _format_fii_row(row: dict) -> str:
 async def _fetch_fii_inf_mensal(cnpj: str, since_date: date) -> list[dict]:
     year = date.today().year
     url = f"{_BASE_URL}/FII/doc/inf_mensal/DADOS/inf_mensal_fii_{year}.zip"
-    try:
-        zip_bytes = await _download_bytes(url)
-    except httpx.HTTPError as e:
-        logger.error(f"Erro ao baixar inf_mensal FII {year}: {e}")
-        return []
-
-    all_csvs = _read_all_csvs_from_zip(zip_bytes)
-    logger.info(f"inf_mensal FII {year}: CSVs encontrados: {list(all_csvs.keys())}")
+    all_csvs = _cache_get(url)
+    if all_csvs is None:
+        try:
+            zip_bytes = await _download_bytes(url)
+        except httpx.HTTPError as e:
+            logger.error(f"Erro ao baixar inf_mensal FII {year}: {e}")
+            return []
+        all_csvs = _read_all_csvs_from_zip(zip_bytes)
+        _cache_set(url, all_csvs)
+        logger.info(f"inf_mensal FII {year}: CSVs encontrados: {list(all_csvs.keys())}")
 
     cnpj_digits = _normalize_cnpj(cnpj)
 
@@ -250,14 +278,16 @@ async def _fetch_cia_via_ipe(
 ) -> list[dict]:
     year = date.today().year
     url = f"{_BASE_URL}/CIA_ABERTA/doc/IPE/DADOS/ipe_cia_aberta_{year}.zip"
-    try:
-        zip_bytes = await _download_bytes(url)
-    except httpx.HTTPError as e:
-        logger.error(f"Erro ao baixar IPE CIA_ABERTA {year}: {e}")
-        return []
-
-    rows, csv_names = _read_csv_from_zip(zip_bytes)
-    logger.info(f"IPE CIA_ABERTA {year}: {len(rows)} linhas, arquivos: {csv_names}")
+    rows = _cache_get(url)
+    if rows is None:
+        try:
+            zip_bytes = await _download_bytes(url)
+        except httpx.HTTPError as e:
+            logger.error(f"Erro ao baixar IPE CIA_ABERTA {year}: {e}")
+            return []
+        rows, csv_names = _read_csv_from_zip(zip_bytes)
+        _cache_set(url, rows)
+        logger.info(f"IPE CIA_ABERTA {year}: {len(rows)} linhas, arquivos: {csv_names}")
 
     cnpj_digits = _normalize_cnpj(cnpj)
     documents: list[dict] = []

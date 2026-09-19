@@ -2,15 +2,12 @@ import logging
 from contextlib import asynccontextmanager
 
 import httpx
-import stripe
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import router
 from app.core.config import settings
 from app.jobs.scheduler import seed_if_empty, start_scheduler, stop_scheduler
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -61,6 +58,9 @@ app = FastAPI(
     # Desabilita docs automáticas em produção
     docs_url="/docs" if settings.APP_ENV != "production" else None,
     redoc_url="/redoc" if settings.APP_ENV != "production" else None,
+    # Sem isto o /openapi.json continuava público em produção mesmo com as
+    # docs desligadas, entregando o mapa completo das rotas.
+    openapi_url="/openapi.json" if settings.APP_ENV != "production" else None,
 )
 
 # Permite requisições apenas do frontend cadastrado

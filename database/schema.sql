@@ -39,6 +39,25 @@ create table public.assets (
     unique(user_id, ticker)
 );
 
+-- Até 30 ativos por conta, garantido no banco para valer em qualquer caminho
+-- de escrita (migração 009). O advisory lock impede que duas inserções
+-- simultâneas passem juntas pela contagem.
+create or replace function public.limitar_ativos_por_usuario()
+returns trigger as $$
+begin
+    perform pg_advisory_xact_lock(hashtext(new.user_id::text));
+    if (select count(*) from public.assets where user_id = new.user_id) >= 30 then
+        raise exception 'Limite de 30 ativos por conta atingido.'
+            using errcode = 'check_violation';
+    end if;
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger trg_assets_limite
+    before insert on public.assets
+    for each row execute function public.limitar_ativos_por_usuario();
+
 -- Relatórios processados pela IA, independentes de usuário
 create table public.reports (
     id              uuid        primary key default uuid_generate_v4(),
@@ -68,20 +87,6 @@ create table public.notification_logs (
     unique(user_id, report_id, channel)
 );
 
--- Dados de assinatura de cada usuário (gerenciados via Stripe)
-create table public.subscriptions (
-    id                      uuid        primary key default uuid_generate_v4(),
-    user_id                 uuid        not null unique references auth.users(id) on delete cascade,
-    stripe_customer_id      text        unique,
-    stripe_subscription_id  text        unique,
-    status                  text        not null default 'trialing', -- trialing | active | past_due | canceled
-    plan                    text,                                     -- monthly | annual
-    trial_ends_at           timestamptz not null default (now() + interval '7 days'),
-    current_period_end      timestamptz,
-    created_at              timestamptz not null default now(),
-    updated_at              timestamptz not null default now()
-);
-
 
 -- =============================================================================
 -- TRIGGER: updated_at automático
@@ -100,14 +105,10 @@ create trigger trg_user_profiles_updated_at
     before update on public.user_profiles
     for each row execute function public.set_updated_at();
 
-create trigger trg_subscriptions_updated_at
-    before update on public.subscriptions
-    for each row execute function public.set_updated_at();
-
 
 -- =============================================================================
 -- TRIGGER: novo usuário
--- Cria automaticamente perfil e assinatura (trial 7 dias) ao registrar
+-- Cria automaticamente o perfil ao registrar
 -- =============================================================================
 
 create or replace function public.handle_new_user()
@@ -115,11 +116,7 @@ returns trigger as $$
 begin
     -- Cria perfil público vinculado ao auth.users, capturando o nome do metadata
     insert into public.user_profiles (id, full_name)
-    values (new.id, new.raw_user_meta_data->>'full_name');
-
-    -- Inicia trial de 7 dias automaticamente
-    insert into public.subscriptions (user_id)
-    values (new.id);
+    values (new.id, left(nullif(trim(new.raw_user_meta_data->>'full_name'), ''), 120));
 
     return new;
 end;
@@ -140,7 +137,6 @@ alter table public.user_profiles      enable row level security;
 alter table public.assets              enable row level security;
 alter table public.reports             enable row level security;
 alter table public.notification_logs   enable row level security;
-alter table public.subscriptions       enable row level security;
 
 
 -- user_profiles: usuário acessa apenas o próprio perfil
@@ -148,9 +144,9 @@ create policy "user_profiles: select own"
     on public.user_profiles for select
     using (auth.uid() = id);
 
-create policy "user_profiles: update own"
-    on public.user_profiles for update
-    using (auth.uid() = id);
+-- Sem policy de escrita em user_profiles nem em assets: toda escrita passa
+-- pela API, com service_role. Liberar escrita direta contornava o limite de
+-- ativos e deixava gravar telegram_chat_id (migração 009).
 
 
 -- assets: usuário acessa apenas os próprios ativos
@@ -158,13 +154,6 @@ create policy "assets: select own"
     on public.assets for select
     using (auth.uid() = user_id);
 
-create policy "assets: insert own"
-    on public.assets for insert
-    with check (auth.uid() = user_id);
-
-create policy "assets: delete own"
-    on public.assets for delete
-    using (auth.uid() = user_id);
 
 
 -- reports: usuário vê apenas relatórios dos tickers que possui na carteira
@@ -185,10 +174,6 @@ create policy "notification_logs: select own"
     using (auth.uid() = user_id);
 
 
--- subscriptions: usuário acessa apenas a própria assinatura
-create policy "subscriptions: select own"
-    on public.subscriptions for select
-    using (auth.uid() = user_id);
 
 
 -- =============================================================================

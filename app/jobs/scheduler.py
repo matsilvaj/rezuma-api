@@ -2,7 +2,7 @@ import asyncio
 import logging
 import threading
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 import httpx
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -252,19 +252,6 @@ async def _process_pipeline(
                     )
                     profile = (prof_res.data or [{}])[0] if prof_res else {}
 
-                    # Verifica assinatura ativa
-                    sub = (
-                        supabase.table("subscriptions")
-                        .select("status")
-                        .eq("user_id", user_id)
-                        .limit(1)
-                        .execute()
-                    )
-                    sub_data = (sub.data or [{}])[0] if sub else {}
-                    status = sub_data.get("status")
-                    if status not in ("trialing", "active"):
-                        continue
-
                     # Verifica se já foi notificado para não reenviar
                     already = (
                         supabase.table("notification_logs")
@@ -432,7 +419,14 @@ async def _notify_user(
     if notify_telegram and telegram_chat_id:
         for ticker, reports in reports_by_ticker.items():
             telegram_reports = [
-                {"title": r["title"], "summary": r["summary"], "source_url": r["source_url"]}
+                {
+                    "title": r["title"],
+                    "summary": r["summary"],
+                    "source_url": r["source_url"],
+                    "document_type": r.get("document_type", ""),
+                    "metrics": r.get("metrics") or {},
+                    "report_id": r.get("report_id", ""),
+                }
                 for r in reports
             ]
             success = await send_asset_report(
@@ -467,6 +461,34 @@ BACKFILL_DAYS = 60
 
 _backfill_lock = threading.Lock()
 _backfill_batches: dict[str, dict] = {}
+
+
+# Um ticker sem documento publicado continua sem relatório depois do backfill,
+# e a rota só olha "tem relatório?". Sem esta trava, adicionar, remover e
+# adicionar de novo disparava um backfill atrás do outro. Uma tentativa por
+# ticker a cada 24h basta: nesse intervalo o job diário já cobre o que surgir.
+_BACKFILL_COOLDOWN = timedelta(hours=24)
+_backfill_tentativas: dict[str, datetime] = {}
+
+
+def reservar_backfill(ticker: str) -> bool:
+    """
+    Reserva a vez do ticker no backfill. Devolve False se ele já foi tentado
+    nas últimas 24h, por qualquer usuário.
+
+    Checar e gravar sob o mesmo lock evita que duas contas adicionando o mesmo
+    ticker no mesmo instante disparem dois backfills.
+    """
+    agora = datetime.now(timezone.utc)
+    chave = ticker.upper()
+    with _backfill_lock:
+        for t, quando in list(_backfill_tentativas.items()):
+            if agora - quando >= _BACKFILL_COOLDOWN:
+                del _backfill_tentativas[t]
+        if chave in _backfill_tentativas:
+            return False
+        _backfill_tentativas[chave] = agora
+        return True
 
 
 def register_backfill(user_id: str, ticker: str) -> None:

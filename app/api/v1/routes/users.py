@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.database import get_supabase
+from app.core.rate_limit import excedeu
 from app.core.security import get_current_user, get_user_id
 from app.models.schemas import UserProfileUpdate
 
@@ -17,7 +18,7 @@ def get_profile(
 ):
     """
     Retorna o perfil completo do usuário autenticado:
-    dados de auth (e-mail) + preferências de notificação + status da assinatura.
+    dados de auth (e-mail) + preferências de notificação.
     """
     supabase = get_supabase()
 
@@ -30,20 +31,10 @@ def get_profile(
         .execute()
     )
 
-    # Busca status da assinatura, pode não existir para usuários muito novos
-    subscription_result = (
-        supabase.table("subscriptions")
-        .select("status, plan, trial_ends_at, current_period_end")
-        .eq("user_id", user_id)
-        .maybe_single()
-        .execute()
-    )
-
     return {
         "id": user_id,
         "email": current_user.get("email"),
         "profile": profile_result.data,
-        "subscription": subscription_result.data,
     }
 
 
@@ -75,6 +66,14 @@ def generate_telegram_link_token(user_id: str = Depends(get_user_id)):
     Gera um token temporário (15 min) para o usuário vincular o Telegram.
     O token é enviado via deep link para o bot: t.me/BotName?start=TOKEN.
     """
+    # Cada chamada grava no banco; clicar em "conectar" repetidamente não
+    # precisa de mais que alguns tokens por janela.
+    if excedeu(f"telegram:{user_id}", 5, timedelta(minutes=10)):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas tentativas. Aguarde alguns minutos para gerar um novo link.",
+        )
+
     token = secrets.token_urlsafe(32)
     expires_at = (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat()
 
