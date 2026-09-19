@@ -1,4 +1,5 @@
 import base64
+import html
 import logging
 import re
 from datetime import datetime
@@ -154,7 +155,7 @@ def _fmt_date(iso: str) -> str:
 
 def _fmt_brl(value: float | None) -> str:
     if value is None:
-        return ", "
+        return "valor não informado"
     return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
@@ -176,7 +177,7 @@ def _extract_period(title: str) -> str | None:
 
 def _clean(line: str) -> str:
     """Remove bullets residuais da IA."""
-    return re.sub(r"^[◆•→➤▸▪, ]\s*", "", line.strip())
+    return re.sub(r"^[◆•→➤▸▪]\s*", "", line.strip())
 
 
 def _md(text: str) -> str:
@@ -307,10 +308,14 @@ def _glossary_box(summary: str) -> str:
 def _report_card(ticker: str, report: dict, dividends: list[dict]) -> str:
     doc_key   = report.get("document_type", "")
     doc_label = DOC_TYPE_LABELS.get(doc_key, "documento")
-    title     = report.get("title", "")
-    period    = _extract_period(title)
+    # Título e link vêm da CVM, não de nós: escapar antes de entrar no HTML.
+    # Um título com < ou aspas quebraria o layout ou abriria um link injetado.
+    raw_title = report.get("title", "")
+    period    = _extract_period(raw_title)
+    title     = html.escape(raw_title)
+    ticker    = html.escape(ticker)
     metrics   = _top_metrics(report.get("metrics"))
-    source_url = report.get("source_url", "")
+    source_url = html.escape(report.get("source_url", ""), quote=True)
 
     # Coluna esquerda: ticker + período + métricas
     left = (
@@ -387,8 +392,9 @@ def _report_card(ticker: str, report: dict, dividends: list[dict]) -> str:
 
     # Card completo
     return (
-        f'<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;'
-        f'background:{RZ_SURFACE};border:1px solid {RZ_BORDER};border-radius:10px;">'
+        f'<table width="100%" cellpadding="0" cellspacing="0" bgcolor="{RZ_SURFACE}" '
+        f'style="margin-bottom:16px;background-color:{RZ_SURFACE};'
+        f'border:1px solid {RZ_BORDER};border-radius:10px;">'
         # Breadcrumb
         f'<tr><td colspan="2" style="padding:18px 24px 0 24px;">'
         f'<p style="font-family:{MONO};font-size:10px;color:{RZ_TEXT_T};'
@@ -437,8 +443,16 @@ def _build_html(
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
 <title>Rezuma</title>
 <style>
+  /* O e-mail já nasce escuro. Sem esta declaração, Gmail, Apple Mail e Outlook
+     assumem que ele é claro e aplicam a própria inversão no modo escuro, o que
+     devolve fundo branco com texto preto, exatamente o oposto do desenho. */
+  :root {{
+    color-scheme: dark;
+    supported-color-schemes: dark;
+  }}
   @media only screen and (max-width:620px) {{
     .rz-left, .rz-right {{
       display:block !important;
@@ -453,9 +467,9 @@ def _build_html(
   }}
 </style>
 </head>
-<body style="margin:0;padding:0;background:{RZ_BG};">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:{RZ_BG};">
-<tr><td align="center" style="padding:36px 16px;">
+<body bgcolor="{RZ_BG}" style="margin:0;padding:0;background-color:{RZ_BG};">
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="{RZ_BG}" style="background-color:{RZ_BG};">
+<tr><td align="center" bgcolor="{RZ_BG}" style="padding:36px 16px;background-color:{RZ_BG};">
 <table width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;">
 
   <tr><td style="padding:0 0 28px 0;">
@@ -631,11 +645,18 @@ def send_backfill_ready(
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
 <title>Rezuma</title>
+<style>
+  :root {{
+    color-scheme: dark;
+    supported-color-schemes: dark;
+  }}
+</style>
 </head>
-<body style="margin:0;padding:0;background:{RZ_BG};">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:{RZ_BG};">
-<tr><td align="center" style="padding:36px 16px;">
+<body bgcolor="{RZ_BG}" style="margin:0;padding:0;background-color:{RZ_BG};">
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="{RZ_BG}" style="background-color:{RZ_BG};">
+<tr><td align="center" bgcolor="{RZ_BG}" style="padding:36px 16px;background-color:{RZ_BG};">
 <table width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;">
 
   <tr><td style="padding:0 0 28px 0;">
@@ -652,8 +673,8 @@ def send_backfill_ready(
     </p>
   </td></tr>
 
-  <tr><td style="background:{RZ_SURFACE};border:1px solid {RZ_BORDER};
-                 border-radius:10px;padding:6px 20px;">
+  <tr><td bgcolor="{RZ_SURFACE}" style="background-color:{RZ_SURFACE};
+                 border:1px solid {RZ_BORDER};border-radius:10px;padding:6px 20px;">
     <table width="100%" cellpadding="0" cellspacing="0">{rows}</table>
   </td></tr>
 

@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 
 import anthropic
 
@@ -8,6 +9,15 @@ from app.services.glossary import known_terms
 from app.services.metrics import normalize_metrics
 
 logger = logging.getLogger(__name__)
+
+# O prompt proíbe travessão e meia-risca, mas instrução não é garantia: o
+# modelo escorrega e o caractere aparece no e-mail e no Telegram, que não
+# passam pelo sanitizador do painel. Limpar aqui vale para os três canais.
+_TRAVESSAO = re.compile(r"\s*[—–]\s*")
+
+
+def _sem_travessao(texto: str) -> str:
+    return _TRAVESSAO.sub(", ", texto)
 
 _GLOSSARY_TERMS = ", ".join(known_terms())
 
@@ -295,6 +305,8 @@ def summarize(
             summary = "\n\n".join(parts).strip()
         else:
             summary = str(summary_raw).strip()
+
+        summary = _sem_travessao(summary)
 
         metrics = data.get("metrics", {})
         if not isinstance(metrics, dict):
