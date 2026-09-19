@@ -32,7 +32,7 @@ def extract_text(pdf_bytes: bytes) -> str:
             total_chars += len(page_text)
 
             if total_chars >= _MAX_CHARS:
-                logger.info("Limite de caracteres atingido — PDF truncado para processamento.")
+                logger.info("Limite de caracteres atingido, PDF truncado para processamento.")
                 break
 
     full_text = "\n".join(text_parts).strip()

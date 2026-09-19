@@ -12,7 +12,7 @@ router = APIRouter()
 def _client_ip(request: Request) -> str:
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:
-        # Último IP da cadeia — adicionado pelo proxy do Railway, não pode ser falsificado pelo cliente
+        # Último IP da cadeia, adicionado pelo proxy do Railway, não pode ser falsificado pelo cliente
         return forwarded.split(",")[-1].strip()
     return request.client.host if request.client else "unknown"
 
@@ -44,4 +44,4 @@ async def run_pipeline_manually(
     _require_admin(request, x_admin_key)
     await _process_pipeline(days_back=days_back, ticker_filter=ticker)
     scope = f"ticker={ticker}" if ticker else f"todos os ativos"
-    return {"message": f"Pipeline executado para os últimos {days_back} dia(s) — {scope}."}
+    return {"message": f"Pipeline executado para os últimos {days_back} dia(s), {scope}."}

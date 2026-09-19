@@ -18,79 +18,79 @@ _MODEL = "claude-haiku-4-5-20251001"
 
 _METRICS_SCHEMAS: dict[str, dict] = {
     "relatorio_gerencial": {
-        "rendimento_por_cota": "float | null — R$/cota distribuído",
-        "dy_percentual": "float | null — dividend yield do mês (%)",
-        "dy_anualizado": "float | null — DY anualizado (%)",
-        "valor_patrimonial_cota": "float | null — VPC em R$",
-        "pvp": "float | null — preço sobre valor patrimonial (ex: 0.97 = 97%)",
-        "vacancia_percentual": "float | null — % de área vaga",
-        "inadimplencia_percentual": "float | null — % de inadimplência",
-        "patrimonio_liquido": "float | null — PL total em R$",
-        "mes_referencia": "string | null — ex: '07/2026'",
-        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
-        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
+        "rendimento_por_cota": "float | null: R$/cota distribuído",
+        "dy_percentual": "float | null: dividend yield do mês (%)",
+        "dy_anualizado": "float | null: DY anualizado (%)",
+        "valor_patrimonial_cota": "float | null: VPC em R$",
+        "pvp": "float | null: preço sobre valor patrimonial (ex: 0.97 = 97%)",
+        "vacancia_percentual": "float | null: % de área vaga",
+        "inadimplencia_percentual": "float | null: % de inadimplência",
+        "patrimonio_liquido": "float | null: PL total em R$",
+        "mes_referencia": "string | null: ex: '07/2026'",
+        "unidade_valores": "string | null: unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null: o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "informe_mensal": {
-        "rendimento_por_cota": "float | null — R$/cota distribuído",
-        "dy_percentual": "float | null — dividend yield do período",
-        "vacancia_percentual": "float | null — % de área vaga",
-        "inadimplencia_percentual": "float | null — % de inadimplência",
-        "patrimonio_liquido": "float | null — PL total em R$",
-        "mes_referencia": "string | null — ex: '01/2025'",
-        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
-        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
+        "rendimento_por_cota": "float | null: R$/cota distribuído",
+        "dy_percentual": "float | null: dividend yield do período",
+        "vacancia_percentual": "float | null: % de área vaga",
+        "inadimplencia_percentual": "float | null: % de inadimplência",
+        "patrimonio_liquido": "float | null: PL total em R$",
+        "mes_referencia": "string | null: ex: '01/2025'",
+        "unidade_valores": "string | null: unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null: o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "itr": {
-        "receita_liquida": "float | null — em R$",
-        "lucro_liquido": "float | null — em R$",
-        "ebitda": "float | null — em R$",
+        "receita_liquida": "float | null: em R$",
+        "lucro_liquido": "float | null: em R$",
+        "ebitda": "float | null: em R$",
         "margem_liquida_percentual": "float | null",
         "divida_liquida_ebitda": "float | null",
-        "roe_percentual": "float | null — retorno sobre o patrimônio líquido (%)",
-        "inadimplencia_percentual": "float | null — inadimplência acima de 90 dias (%), típico de banco",
-        "indice_basileia": "float | null — índice de Basileia (%), só banco",
-        "indice_eficiencia_percentual": "float | null — índice de eficiência (%), só banco",
-        "margem_financeira": "float | null — margem financeira bruta em R$, só banco",
-        "trimestre_referencia": "string | null — ex: '1T2025'",
-        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
-        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
+        "roe_percentual": "float | null: retorno sobre o patrimônio líquido (%)",
+        "inadimplencia_percentual": "float | null: inadimplência acima de 90 dias (%), típico de banco",
+        "indice_basileia": "float | null: índice de Basileia (%), só banco",
+        "indice_eficiencia_percentual": "float | null: índice de eficiência (%), só banco",
+        "margem_financeira": "float | null: margem financeira bruta em R$, só banco",
+        "trimestre_referencia": "string | null: ex: '1T2025'",
+        "unidade_valores": "string | null: unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null: o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "dfp": {
-        "receita_liquida": "float | null — em R$",
-        "lucro_liquido": "float | null — em R$",
-        "ebitda": "float | null — em R$",
+        "receita_liquida": "float | null: em R$",
+        "lucro_liquido": "float | null: em R$",
+        "ebitda": "float | null: em R$",
         "margem_liquida_percentual": "float | null",
         "divida_liquida_ebitda": "float | null",
-        "roe_percentual": "float | null — retorno sobre o patrimônio líquido (%)",
-        "inadimplencia_percentual": "float | null — inadimplência acima de 90 dias (%), típico de banco",
-        "indice_basileia": "float | null — índice de Basileia (%), só banco",
-        "indice_eficiencia_percentual": "float | null — índice de eficiência (%), só banco",
-        "margem_financeira": "float | null — margem financeira bruta em R$, só banco",
-        "ano_referencia": "string | null — ex: '2024'",
-        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
-        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
+        "roe_percentual": "float | null: retorno sobre o patrimônio líquido (%)",
+        "inadimplencia_percentual": "float | null: inadimplência acima de 90 dias (%), típico de banco",
+        "indice_basileia": "float | null: índice de Basileia (%), só banco",
+        "indice_eficiencia_percentual": "float | null: índice de eficiência (%), só banco",
+        "margem_financeira": "float | null: margem financeira bruta em R$, só banco",
+        "ano_referencia": "string | null: ex: '2024'",
+        "unidade_valores": "string | null: unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null: o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "apresentacao_resultados": {
-        "receita_liquida": "float | null — em R$",
-        "lucro_liquido": "float | null — em R$",
-        "ebitda": "float | null — em R$",
+        "receita_liquida": "float | null: em R$",
+        "lucro_liquido": "float | null: em R$",
+        "ebitda": "float | null: em R$",
         "margem_ebitda_percentual": "float | null",
         "margem_liquida_percentual": "float | null",
         "divida_liquida_ebitda": "float | null",
-        "dividendo_por_acao": "float | null — R$/ação",
-        "trimestre_referencia": "string | null — ex: '2T2026'",
-        "roe_percentual": "float | null — retorno sobre o patrimônio líquido (%)",
-        "inadimplencia_percentual": "float | null — inadimplência acima de 90 dias (%), típico de banco",
-        "indice_basileia": "float | null — índice de Basileia (%), só banco",
-        "indice_eficiencia_percentual": "float | null — índice de eficiência (%), só banco",
-        "margem_financeira": "float | null — margem financeira bruta em R$, só banco",
-        "guidance_receita": "string | null — guidance de receita se divulgado",
-        "unidade_valores": "string | null — unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
-        "unidade_fonte": "string | null — o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
+        "dividendo_por_acao": "float | null: R$/ação",
+        "trimestre_referencia": "string | null: ex: '2T2026'",
+        "roe_percentual": "float | null: retorno sobre o patrimônio líquido (%)",
+        "inadimplencia_percentual": "float | null: inadimplência acima de 90 dias (%), típico de banco",
+        "indice_basileia": "float | null: índice de Basileia (%), só banco",
+        "indice_eficiencia_percentual": "float | null: índice de eficiência (%), só banco",
+        "margem_financeira": "float | null: margem financeira bruta em R$, só banco",
+        "guidance_receita": "string | null: guidance de receita se divulgado",
+        "unidade_valores": "string | null: unidade dos valores em dinheiro na tabela de onde você tirou os números: 'unidades', 'milhares', 'milhoes' ou 'bilhoes'",
+        "unidade_fonte": "string | null: o trecho LITERAL do documento que indica essa unidade, ex: '(Em milhares de reais)'. Copie exatamente como está escrito; não invente",
     },
     "fato_relevante": {
-        "tipo_evento": "string | null — ex: 'dividendo_extraordinario', 'aquisicao', 'guidance', 'mudanca_gestao', 'oferta_publica'",
-        "impacto": "string | null — ex: 'positivo', 'negativo', 'neutro'",
+        "tipo_evento": "string | null: ex: 'dividendo_extraordinario', 'aquisicao', 'guidance', 'mudanca_gestao', 'oferta_publica'",
+        "impacto": "string | null: ex: 'positivo', 'negativo', 'neutro'",
     },
 }
 
@@ -178,8 +178,8 @@ REGRAS OBRIGATÓRIAS:
 TERMOS JÁ COBERTOS PELO GLOSSÁRIO (use livremente, não explique):
 {_GLOSSARY_TERMS}
 
-3. Nunca liste números soltos. Todo número precisa de contexto — se é bom ou ruim e por quê.
-4. NUNCA faça recomendações de compra, venda ou manutenção. Você traduz o que aconteceu — a decisão é do investidor.
+3. Nunca liste números soltos. Todo número precisa de contexto, se é bom ou ruim e por quê.
+4. NUNCA faça recomendações de compra, venda ou manutenção. Você traduz o que aconteceu, a decisão é do investidor.
 5. Use apenas dados do documento.
 5.1 Sobre unidade dos valores: balanços publicam em "R$ mil" ou "R$ milhões". Preencha "unidade_valores" com a unidade da tabela de onde tirou os números e "unidade_fonte" com o trecho literal que comprova isso. NÃO faça a conversão você mesmo: informe o número exatamente como está impresso e deixe a unidade separada. Se não achar a indicação de unidade no documento, deixe os dois campos nulos.
 6. Retorne APENAS JSON válido sem markdown.
@@ -221,7 +221,7 @@ def summarize(
     O resumo inclui comparação com o período anterior quando previous_metrics é fornecido.
     """
     if not text.strip():
-        logger.warning(f"Texto vazio para {ticker} — resumo não gerado.")
+        logger.warning(f"Texto vazio para {ticker}, resumo não gerado.")
         return "", {}
 
     schema = _METRICS_SCHEMAS.get(document_type, _METRICS_SCHEMAS["fato_relevante"])
@@ -272,7 +272,7 @@ def summarize(
         summary_raw = data.get("summary", "")
 
         # Modelo às vezes retorna summary como objeto {DESTAQUE: ..., MOVIMENTAÇÕES: ...}
-        # em vez de string — nesse caso, reconstrói a string manualmente
+        # em vez de string, nesse caso, reconstrói a string manualmente
         if isinstance(summary_raw, dict):
             parts: list[str] = []
             destaque = summary_raw.get("DESTAQUE") or summary_raw.get("destaque", "")

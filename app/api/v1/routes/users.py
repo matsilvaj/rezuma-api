@@ -30,7 +30,7 @@ def get_profile(
         .execute()
     )
 
-    # Busca status da assinatura — pode não existir para usuários muito novos
+    # Busca status da assinatura, pode não existir para usuários muito novos
     subscription_result = (
         supabase.table("subscriptions")
         .select("status, plan, trial_ends_at, current_period_end")

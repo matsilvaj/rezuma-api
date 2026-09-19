@@ -50,7 +50,7 @@ def filter_documents(documents: list[dict], ticker: str = "") -> list[dict]:
     """
     Devolve os documentos sem versões estrangeiras nem repostagens.
 
-    Repostagem é título idêntico no mesmo tipo de documento — a CVM aceita
+    Repostagem é título idêntico no mesmo tipo de documento, a CVM aceita
     reenvio corrigido, e os dois ficam listados. Mantém o mais recente.
     """
     if not documents:

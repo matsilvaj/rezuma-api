@@ -1,5 +1,5 @@
 """
-TradingView scanner API — free, no auth required.
+TradingView scanner API, free, no auth required.
 Returns market price and dividend yield for Brazilian assets.
 Ticker format: "BMFBOVESPA:{TICKER}" e.g. "BMFBOVESPA:TRXF11"
 """

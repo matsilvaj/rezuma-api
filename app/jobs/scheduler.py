@@ -97,10 +97,10 @@ async def _process_pipeline(
         search_term = b3_info.get("cnpj")
 
         if not search_term:
-            logger.warning(f"{ticker}: CNPJ não disponível no catálogo — pulando. Execute sync_b3_assets para tentar resolver.")
+            logger.warning(f"{ticker}: CNPJ não disponível no catálogo, pulando. Execute sync_b3_assets para tentar resolver.")
             continue
 
-        # Pre-fetch Status Invest for FIIs — allows health monitoring without double-fetch
+        # Pre-fetch Status Invest for FIIs, allows health monitoring without double-fetch
         si_docs_preloaded = _UNSET_SI
         if asset_type == "fii" and ticker:
             si_docs_preloaded = await si_fetch_documents(ticker=ticker, since_date=since_date)
@@ -128,7 +128,7 @@ async def _process_pipeline(
         documents = filter_documents(documents, ticker)
 
         # Fetch structured dividend announcements for FIIs via Status Invest
-        # (bypasses FNET search/Cloudflare — uses only FNET downloadDocumento for XML)
+        # (bypasses FNET search/Cloudflare, uses only FNET downloadDocumento for XML)
         if asset_type == "fii" and ticker:
             try:
                 fnet_since = date.today() - timedelta(days=7)
@@ -160,7 +160,7 @@ async def _process_pipeline(
                     report_id = existing_data["id"]
                     summary = existing_data["summary"]
                     report_metrics = existing_data.get("metrics") or {}
-                    logger.info(f"Relatório reutilizado: {ticker} — {doc['title']}")
+                    logger.info(f"Relatório reutilizado: {ticker}, {doc['title']}")
                 else:
                     # Busca métricas do relatório anterior para comparação
                     prev_res = (
@@ -199,7 +199,7 @@ async def _process_pipeline(
                             text = enrichment + "\n\n" + text
 
                     if not text:
-                        logger.warning(f"Texto vazio para {ticker} — {doc['title']}. Pulando.")
+                        logger.warning(f"Texto vazio para {ticker}, {doc['title']}. Pulando.")
                         continue
 
                     summary, metrics = summarize(
@@ -225,7 +225,7 @@ async def _process_pipeline(
                     }).execute()
 
                     report_id = result.data[0]["id"]
-                    logger.info(f"Relatório salvo: {ticker} — {doc['title']}")
+                    logger.info(f"Relatório salvo: {ticker}, {doc['title']}")
 
                 # No backfill não há notificação: o relatório já está gravado
                 if not notify:
@@ -462,7 +462,7 @@ BACKFILL_DAYS = 60
 # avisado quando o último backfill do lote termina.
 #
 # O estado vive em memória: se o processo reiniciar no meio, o lote se perde e
-# ninguém é avisado. É aceitável — o pior caso é a ausência de um aviso, não um
+# ninguém é avisado. É aceitável, o pior caso é a ausência de um aviso, não um
 # dado errado. Vira tabela quando houver mais de uma instância servindo.
 
 _backfill_lock = threading.Lock()
@@ -535,7 +535,7 @@ async def _run_backfill(ticker: str, days_back: int) -> int:
     """
     Executa a busca de documentos do ticker e devolve quantos relatórios ele
     tem no banco ao final. Devolve 0 quando não havia o que buscar ou a busca
-    falhou — nesses casos o usuário não é avisado.
+    falhou, nesses casos o usuário não é avisado.
     """
     ticker = ticker.upper()
     supabase = get_supabase()
@@ -650,14 +650,14 @@ def job_sync_b3_assets() -> None:
 async def seed_if_empty() -> None:
     try:
         if await is_b3_assets_empty():
-            logger.info("Catálogo vazio — executando seed inicial...")
+            logger.info("Catálogo vazio, executando seed inicial...")
             await sync_b3_assets()
     except Exception as e:
         logger.error(f"Falha no seed inicial: {e}. O servidor continuará normalmente.")
 
 
 def start_scheduler() -> None:
-    # Rodada matinal — pega relatórios publicados durante a madrugada
+    # Rodada matinal, pega relatórios publicados durante a madrugada
     scheduler.add_job(
         job_fetch_and_process_reports,
         trigger=CronTrigger(hour=8, minute=0, timezone="America/Sao_Paulo"),
@@ -665,7 +665,7 @@ def start_scheduler() -> None:
         replace_existing=True,
     )
 
-    # Rodada vespertina — pega relatórios publicados durante o dia
+    # Rodada vespertina, pega relatórios publicados durante o dia
     scheduler.add_job(
         job_fetch_and_process_reports,
         trigger=CronTrigger(hour=18, minute=0, timezone="America/Sao_Paulo"),

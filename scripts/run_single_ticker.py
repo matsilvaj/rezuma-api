@@ -11,7 +11,7 @@ import logging
 from collections import defaultdict
 from datetime import date, timedelta
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s — %(message)s")
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s, %(message)s")
 logger = logging.getLogger("run_single")
 
 
@@ -96,7 +96,7 @@ async def run(ticker: str, days_back: int) -> None:
         existing_data = (existing.data or [None])[0]
 
         if existing_data:
-            logger.info("  (relatório já existe no banco — reutilizando)")
+            logger.info("  (relatório já existe no banco, reutilizando)")
             summary = existing_data["summary"]
             pdf_bytes = None
         else:
@@ -124,7 +124,7 @@ async def run(ticker: str, days_back: int) -> None:
                     text = enrichment + "\n\n" + text
 
             if not text:
-                logger.warning("  Texto vazio — pulando.")
+                logger.warning("  Texto vazio, pulando.")
                 continue
 
             prev_res = (

@@ -27,18 +27,18 @@ class Settings(BaseSettings):
     # App
     APP_ENV: str = "development"
     FRONTEND_URL: str = "http://localhost:3000"
-    BACKEND_URL: str = ""  # URL pública do backend — obrigatório em produção para registrar o webhook
+    BACKEND_URL: str = ""  # URL pública do backend, obrigatório em produção para registrar o webhook
 
     # Telegram Webhook
     TELEGRAM_WEBHOOK_SECRET: str = ""  # Secret enviado pelo Telegram em cada request ao webhook
 
-    # E-mail — usar onboarding@resend.dev em dev (sem domínio verificado)
+    # E-mail, usar onboarding@resend.dev em dev (sem domínio verificado)
     EMAIL_FROM: str = "Rezuma <onboarding@resend.dev>"
 
     # Alertas operacionais para o desenvolvedor (deixe vazio para desativar)
     ADMIN_EMAIL: str = ""
 
-    # Chave secreta para endpoints administrativos — obrigatório em produção
+    # Chave secreta para endpoints administrativos, obrigatório em produção
     ADMIN_SECRET_KEY: str = ""
 
     class Config:

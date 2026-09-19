@@ -6,7 +6,7 @@ We parse this to get document metadata (type, date, FNET id) without hitting FNE
 Cloudflare-protected search API. Downloads (PDFs and dividend XMLs) go directly to
 FNET downloadDocumento, which has no Cloudflare protection.
 
-Coverage: FIIs only — FIAGROs return 200 with no data-code (treated as not found).
+Coverage: FIIs only, FIAGROs return 200 with no data-code (treated as not found).
 """
 import html as html_stdlib
 import json
@@ -30,7 +30,7 @@ _HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-# data-page="[...]" — all `"` inside the value are encoded as &quot;, so literal " only appears at boundaries
+# data-page="[...]", all `"` inside the value are encoded as &quot;, so literal " only appears at boundaries
 _DATA_PAGE_RE = re.compile(r'data-page="([^"]+)"')
 _FNET_ID_RE = re.compile(r"exibirDocumento\?id=(\d+)", re.IGNORECASE)
 
@@ -64,9 +64,9 @@ def _parse_documents(html: str, since_date: date) -> list[dict] | None:
     Parses Status Invest FII page HTML.
 
     Returns:
-      None  — ticker not found (no data-code in page)
-      []    — ticker found, no matching docs in window
-      [...] — docs found
+      None, ticker not found (no data-code in page)
+      [], ticker found, no matching docs in window
+      [...], docs found
     """
     # Valid FII pages have data-code attribute; error pages don't
     if 'data-code="' not in html:
@@ -166,11 +166,11 @@ def _parse_dividend_entries(html: str, since_date: date) -> list[tuple[str, date
 async def fetch_fii_dividends(ticker: str, since_date: date) -> list[dict]:
     """
     Fetches FII dividend announcements from Status Invest + FNET XML download.
-    Bypasses FNET search (Cloudflare) entirely — uses only FNET downloadDocumento.
+    Bypasses FNET search (Cloudflare) entirely, uses only FNET downloadDocumento.
 
     Returns list of dicts matching fnet.fetch_fii_dividends format:
       {ticker, valor_por_cota, data_base, data_pagamento, periodo, isento_ir, published_at}
-    Returns [] on any failure (non-fatal — caller treats dividends as supplementary).
+    Returns [] on any failure (non-fatal, caller treats dividends as supplementary).
     """
     from app.services.fnet import _parse_dividend_xml  # avoid circular at module level
 
@@ -216,9 +216,9 @@ async def fetch_fii_documents(ticker: str, since_date: date) -> list[dict] | Non
     Fetches recent FII documents from Status Invest.
     Returns only relatorio_gerencial and fato_relevante types.
 
-      None  — ticker not found or network error → caller falls back to FNET
-      []    — ticker found, no matching docs in window → no FNET fallback needed
-      [...] — docs found
+      None, ticker not found or network error → caller falls back to FNET
+      [], ticker found, no matching docs in window → no FNET fallback needed
+      [...], docs found
     """
     url = f"{_BASE_URL}/{ticker.lower()}"
     try:

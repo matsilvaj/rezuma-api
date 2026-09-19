@@ -35,7 +35,7 @@ class UserProfileUpdate(BaseModel):
     full_name: Optional[Annotated[str, Field(min_length=2, max_length=120)]] = None
     notify_email: Optional[bool] = None
     notify_telegram: Optional[bool] = None
-    # telegram_chat_id é escrito apenas pelo webhook do bot — não exposto aqui
+    # telegram_chat_id é escrito apenas pelo webhook do bot, não exposto aqui
 
 
 # ---------------------------------------------------------------------------

@@ -108,14 +108,14 @@ _FII_INF_MENSAL_FIELDS = {
     "Data_Referencia": "Competência",
     "Segmento_Atuacao": "Segmento",
     "Tipo_Gestao": "Tipo de Gestão",
-    # complemento CSV — métricas-chave para o investidor
+    # complemento CSV, métricas-chave para o investidor
     "Valor_Patrimonial_Cotas": "Valor patrimonial da cota (R$)",
     "Patrimonio_Liquido": "Patrimônio Líquido (R$)",
     "Valor_Ativo": "Ativo Total (R$)",
     "Cotas_Emitidas": "Cotas emitidas",
     "Total_Numero_Cotistas": "Total de cotistas",
     "Numero_Cotistas_Pessoa_Fisica": "Cotistas pessoa física",
-    "Percentual_Dividend_Yield_Mes": "Dividend Yield do mês (decimal — ex: 0.015 = 1.5%)",
+    "Percentual_Dividend_Yield_Mes": "Dividend Yield do mês (decimal, ex: 0.015 = 1.5%)",
     "Percentual_Rentabilidade_Efetiva_Mes": "Rentabilidade efetiva do mês (decimal)",
     "Percentual_Rentabilidade_Patrimonial_Mes": "Rentabilidade patrimonial do mês (decimal)",
     "Percentual_Despesas_Taxa_Administracao": "Taxa de administração mensal (decimal)",
@@ -226,11 +226,11 @@ async def _fetch_fii_inf_mensal(cnpj: str, since_date: date) -> list[dict]:
                 merged.update({k: v for k, v in idx[key].items() if k not in merged or not merged[k]})
 
         fund_name = merged.get("Nome_Fundo_Classe", cnpj).strip()
-        raw_text = f"INFORME MENSAL FII — {fund_name}\n" + _format_fii_row(merged)
+        raw_text = f"INFORME MENSAL FII, {fund_name}\n" + _format_fii_row(merged)
 
         dedup_url = f"dados.cvm.gov.br/FII/inf_mensal/{cnpj_digits}/{dt.strftime('%Y-%m')}"
         documents.append({
-            "title": f"Informe Mensal — {fund_name} ({dt.strftime('%m/%Y')})",
+            "title": f"Informe Mensal, {fund_name} ({dt.strftime('%m/%Y')})",
             "document_type": "informe_mensal",
             "published_at": dt.isoformat(),
             "source_url": dedup_url,
@@ -303,11 +303,11 @@ async def _fetch_cia_via_ipe(
         title = assunto or tipo_raw or categ_raw
 
         documents.append({
-            "title": title or f"{categ_raw} — {dt.isoformat()}",
+            "title": title or f"{categ_raw}, {dt.isoformat()}",
             "document_type": matched_type,
             "published_at": dt.isoformat(),
             "source_url": link,
-            "raw_data": "",  # PDF — will be downloaded by scheduler
+            "raw_data": "",  # PDF, will be downloaded by scheduler
         })
 
     return documents
@@ -331,7 +331,7 @@ async def fetch_new_documents(
     search_term deve ser o CNPJ do fundo/empresa (com ou sem formatação).
     ticker é usado para FIIs: tenta Status Invest (estável) antes do FNET (instável).
 
-    si_docs — resultado pré-carregado de statusinvest.fetch_fii_documents:
+    si_docs, resultado pré-carregado de statusinvest.fetch_fii_documents:
       _UNSET      → não pre-carregado, busca internamente
       None        → ticker não encontrado no SI → aciona fallback FNET
       []          → encontrado, sem docs no período → não aciona FNET
@@ -346,7 +346,7 @@ async def fetch_new_documents(
     documents: list[dict] = []
 
     if asset_type == "fii":
-        # Resolve SI docs — use pre-loaded if provided, otherwise fetch now
+        # Resolve SI docs, use pre-loaded if provided, otherwise fetch now
         if si_docs is _UNSET:
             resolved_si = await _si_fetch(ticker=ticker, since_date=since_date) if ticker else None
         else:
@@ -362,7 +362,7 @@ async def fetch_new_documents(
             )
             documents.extend(fnet_docs)
 
-        # Supplementary: informe mensal estruturado da CVM (CSV) — não duplica pois
+        # Supplementary: informe mensal estruturado da CVM (CSV), não duplica pois
         # usa source_url diferente (dados.cvm.gov.br vs fnet.bmfbovespa.com.br)
         inf_docs = await _fetch_fii_inf_mensal(cnpj=search_term, since_date=since_date)
         documents.extend(inf_docs)

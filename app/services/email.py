@@ -59,7 +59,7 @@ METRIC_LABELS: dict[str, str] = {
 }
 
 # Espelha pickPriority() do dashboard: a ordem certa depende do que o ativo é,
-# e o tipo é deduzido das métricas presentes — só banco reporta Basileia, só
+# e o tipo é deduzido das métricas presentes, só banco reporta Basileia, só
 # FII reporta vacância.
 PRIORITY_FII = [
     "rendimento_por_cota", "dy_percentual", "dy_anualizado", "vacancia_percentual",
@@ -108,7 +108,7 @@ def _fmt_metric(key: str, value) -> str:
 
 
 def _dec1(n: float) -> str:
-    """1.0 vira "1"; 1.5 vira "1,5" — sem casa decimal inútil."""
+    """1.0 vira "1"; 1.5 vira "1,5", sem casa decimal inútil."""
     return f"{n:.1f}".rstrip("0").rstrip(".").replace(".", ",") or "0"
 
 
@@ -154,7 +154,7 @@ def _fmt_date(iso: str) -> str:
 
 def _fmt_brl(value: float | None) -> str:
     if value is None:
-        return "—"
+        return ", "
     return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
@@ -176,7 +176,7 @@ def _extract_period(title: str) -> str | None:
 
 def _clean(line: str) -> str:
     """Remove bullets residuais da IA."""
-    return re.sub(r"^[◆•→➤▸▪–]\s*", "", line.strip())
+    return re.sub(r"^[◆•→➤▸▪, ]\s*", "", line.strip())
 
 
 def _md(text: str) -> str:
@@ -193,7 +193,7 @@ def _md(text: str) -> str:
 # ── Renderização das seções do resumo ─────────────────────────────────────
 
 def _summary_sections(text: str) -> str:
-    """DESTAQUE / citação / MOVIMENTAÇÕES / ATENÇÃO — igual ao dashboard."""
+    """DESTAQUE / citação / MOVIMENTAÇÕES / ATENÇÃO, igual ao dashboard."""
     LABEL = (
         f"font-family:{MONO};font-size:9px;font-weight:600;"
         f"letter-spacing:1.6px;text-transform:uppercase;"
@@ -530,7 +530,7 @@ def send_consolidated_report(
     text_lines: list[str] = [greeting, ""]
     for ticker, reports in reports_by_ticker.items():
         for report in reports:
-            text_lines.append(f"{ticker} — {report.get('title', '')}")
+            text_lines.append(f"{ticker}, {report.get('title', '')}")
             text_lines.append("")
             text_lines.append(re.sub(r"\*\*(.+?)\*\*", r"\1", report.get("summary", "")))
             for div in dividends_map.get(ticker, []):
@@ -574,7 +574,7 @@ def send_consolidated_report(
 
     try:
         resend.Emails.send(payload)
-        logger.info(f"E-mail enviado para {to_email} — {tickers}")
+        logger.info(f"E-mail enviado para {to_email}, {tickers}")
         return True
     except Exception as e:
         logger.error(f"Erro ao enviar e-mail para {to_email}: {e}")
@@ -589,7 +589,7 @@ def send_backfill_ready(
     """
     Avisa que a busca inicial de relatórios terminou, com link para o app.
 
-    found: [{"ticker": "BBAS3", "count": 9}, ...] — apenas ativos que renderam
+    found: [{"ticker": "BBAS3", "count": 9}, ...], apenas ativos que renderam
     algum relatório. Chamado uma vez por lote, quando o último backfill do
     usuário termina.
     """
@@ -701,7 +701,7 @@ def send_backfill_ready(
                 "X-Entity-Ref-ID": f"rezuma-backfill-{'-'.join(tickers)}",
             },
         })
-        logger.info(f"Aviso de backfill enviado para {to_email} — {tickers}")
+        logger.info(f"Aviso de backfill enviado para {to_email}, {tickers}")
         return True
     except Exception as e:
         logger.error(f"Erro ao enviar aviso de backfill para {to_email}: {e}")

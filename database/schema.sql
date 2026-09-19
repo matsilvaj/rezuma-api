@@ -1,5 +1,5 @@
 -- =============================================================================
--- Rezuma — Schema do banco de dados
+-- Rezuma, Schema do banco de dados
 -- Execute no SQL Editor do Supabase na ordem em que está escrito
 -- =============================================================================
 

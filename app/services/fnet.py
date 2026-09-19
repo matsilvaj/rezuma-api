@@ -4,7 +4,7 @@ FNET (B3 Fundos.NET) document fetcher for FII PDFs.
 Uses curl-cffi with Chrome impersonation to bypass Cloudflare protection.
 Covers: Relatório Gerencial (monthly) and Fato Relevante (event-based).
 
-The Relatório Gerencial is a B3/FNET-exclusive document — CVM only receives
+The Relatório Gerencial is a B3/FNET-exclusive document, CVM only receives
 the Informe Mensal Estruturado (CSV), which is a different, less detailed report.
 """
 import asyncio
@@ -27,7 +27,7 @@ _DOC_TYPE_FILTERS: dict[str, tuple[str, str | None]] = {
     "fato_relevante": ("Fato Relevante", None),
 }
 
-# Aviso aos Cotistas Estruturado — Rendimentos e Amortizações
+# Aviso aos Cotistas Estruturado, Rendimentos e Amortizações
 _DIVIDEND_CAT = "Aviso aos Cotistas - Estruturado"
 _DIVIDEND_TIPO = "Rendimentos e Amortizações"
 
@@ -90,7 +90,7 @@ async def fetch_fii_documents(
     documents: list[dict] = []
 
     async with AsyncSession(impersonate="chrome120") as session:
-        # Warm up Cloudflare cookies — best-effort, failure is non-fatal
+        # Warm up Cloudflare cookies, best-effort, failure is non-fatal
         try:
             await session.get(_PAGE_URL, timeout=30)
         except Exception as e:
@@ -147,7 +147,7 @@ async def fetch_fii_documents(
                 fund_name = row.get("descricaoFundo", "").strip()
                 ref = row.get("dataReferencia", "").strip()
                 label = tipo or cat
-                title = f"{label} — {fund_name} ({ref})"
+                title = f"{label}, {fund_name} ({ref})"
                 pdf_url = f"{_DOWNLOAD_URL}?id={doc_id}"
 
                 documents.append({
@@ -197,7 +197,7 @@ def _parse_dividend_xml(xml_bytes: bytes) -> dict | None:
     Returns dict with: ticker, valor_por_cota, data_base (ex-date), data_pagamento, isento_ir
 
     XML root: DadosEconomicoFinanceiros/InformeRendimentos/Provento/Rendimento
-    NOTE: ElementTree leaf elements are falsy even with text — always use `is not None`.
+    NOTE: ElementTree leaf elements are falsy even with text, always use `is not None`.
     """
     try:
         root = ET.fromstring(xml_bytes)
@@ -287,7 +287,7 @@ async def fetch_fii_dividends(cnpj: str, since_date: date) -> list[dict]:
                     if not doc_id:
                         continue
 
-                    # Download structured XML — plain httpx works (no Cloudflare on downloadDocumento)
+                    # Download structured XML, plain httpx works (no Cloudflare on downloadDocumento)
                     try:
                         xml_r = await xml_client.get(
                             f"{_DOWNLOAD_URL}?id={doc_id}",

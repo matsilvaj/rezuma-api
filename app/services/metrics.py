@@ -9,14 +9,14 @@ multiplica de novo e R$ 3,9 bilhões viram R$ 3.900 bilhões.
 A defesa principal é ancorar no próprio texto do resumo: na prosa o modelo
 escreve "R$ 3,9 bilhões" com a escala certa, porque ali ele está redigindo, não
 preenchendo campo. Comparar o número estruturado com os valores citados no texto
-pega o erro sem depender de o modelo seguir instrução — e, quando o valor cru
+pega o erro sem depender de o modelo seguir instrução, e, quando o valor cru
 casa com a prosa, permite recuperar em vez de descartar.
 
 Percentuais, razões e valores por cota são imunes ao problema: se a tabela está
 em milhares, o percentual sai igual e R$ 0,89 por cota continua 0,89.
 
 Regra que orienta o módulo: número errado é pior que número nenhum. Sem
-conseguir afirmar o valor, a métrica é descartada — ela continua no texto do
+conseguir afirmar o valor, a métrica é descartada, ela continua no texto do
 resumo, onde ao menos aparece com contexto.
 """
 
@@ -38,7 +38,7 @@ ABSOLUTE_MONEY_KEYS = {
 # Piso por campo. Receita e patrimônio de uma listada ou de um FII não podem
 # ser minúsculos: valor abaixo do piso denuncia unidade errada.
 #
-# Lucro e EBITDA ficam de fora do piso de propósito — podem ser legitimamente
+# Lucro e EBITDA ficam de fora do piso de propósito, podem ser legitimamente
 # pequenos, zero ou negativos numa margem apertada ou num trimestre ruim.
 ABSOLUTE_FLOORS = {
     "receita_liquida": 1_000_000.0,
@@ -177,7 +177,7 @@ def _resolver_absoluto(
     Decide o valor final de um campo monetário absoluto.
 
     Com valores citados no texto, eles são a autoridade: tenta o número
-    convertido e, se não casar, tenta o número cru — que é o caso de o modelo
+    convertido e, se não casar, tenta o número cru, que é o caso de o modelo
     já ter convertido sozinho e ainda assim declarar a unidade. Sem citação no
     texto, cai nas regras de unidade, piso e teto.
     """

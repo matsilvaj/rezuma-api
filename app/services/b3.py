@@ -16,7 +16,7 @@ _BRAPI_LIST_URL = "https://brapi.dev/api/quote/list"
 _BRAPI_PAGE_SIZE = 100
 
 # Subtipos brapi relevantes para o investidor comum brasileiro
-# fi-agro = FIAGROs, fi-infra = Fundos de Infraestrutura — mesma estrutura dos FIIs
+# fi-agro = FIAGROs, fi-infra = Fundos de Infraestrutura, mesma estrutura dos FIIs
 _VALID_SUBTYPES = {"stock", "unit", "fii", "fi-agro", "fi-infra"}
 
 # Subtipos que operam como FII (FNET + CVM inf_mensal, dividendos mensais)
@@ -28,7 +28,7 @@ _FRACTIONAL_RE = re.compile(r"^[A-Z]{4}\d+F$")
 _B3_COMPANIES_URL = "https://sistemaswebb3-listados.b3.com.br/listedCompaniesProxy/CompanyCall/GetInitialCompanies/{payload}"
 _B3_PAGE_SIZE = 120
 
-# CVM inf_mensal FII (FIIs) — has CNPJ + ISIN per fund
+# CVM inf_mensal FII (FIIs), has CNPJ + ISIN per fund
 _CVM_INF_MENSAL_FII = "https://dados.cvm.gov.br/dados/FII/doc/inf_mensal/DADOS/inf_mensal_fii_{year}.zip"
 
 _B3_HEADERS = {
@@ -45,7 +45,7 @@ def _b3_payload(obj: dict) -> str:
 
 def _normalize_cnpj(cnpj: str) -> str:
     digits = "".join(c for c in (cnpj or "") if c.isdigit())
-    # CNPJ always has 14 digits — zero-pad if leading zeros were stripped (e.g. BBAS3)
+    # CNPJ always has 14 digits, zero-pad if leading zeros were stripped (e.g. BBAS3)
     return digits.zfill(14) if digits else ""
 
 
@@ -203,7 +203,7 @@ async def sync_b3_assets() -> None:
 
     assets = await _fetch_all_assets()
     if not assets:
-        logger.warning("Nenhum ativo retornado — sincronização abortada.")
+        logger.warning("Nenhum ativo retornado, sincronização abortada.")
         return
 
     supabase = get_supabase()

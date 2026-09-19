@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 async def _register_telegram_webhook() -> None:
     """
     Registra o webhook do Telegram na inicialização.
-    Executado apenas em produção — requer BACKEND_URL e TELEGRAM_WEBHOOK_SECRET configurados.
+    Executado apenas em produção, requer BACKEND_URL e TELEGRAM_WEBHOOK_SECRET configurados.
     """
     if settings.APP_ENV != "production":
         return
@@ -55,7 +55,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Rezuma API",
-    description="Backend do Rezuma — resumos de relatórios de ações e FIIs.",
+    description="Backend do Rezuma, resumos de relatórios de ações e FIIs.",
     version="1.0.0",
     lifespan=lifespan,
     # Desabilita docs automáticas em produção

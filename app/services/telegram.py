@@ -45,7 +45,7 @@ def _summary_to_telegram(text: str) -> str:
 async def send_message(chat_id: int | str, text: str) -> bool:
     """Envia mensagem de texto simples."""
     if not settings.TELEGRAM_BOT_TOKEN:
-        logger.warning("TELEGRAM_BOT_TOKEN não configurado — mensagem não enviada.")
+        logger.warning("TELEGRAM_BOT_TOKEN não configurado, mensagem não enviada.")
         return False
     try:
         async with Bot(token=settings.TELEGRAM_BOT_TOKEN) as bot:
@@ -60,7 +60,7 @@ async def send_backfill_ready(chat_id: str, found: list[dict]) -> bool:
     """
     Avisa que a busca inicial de relatórios terminou, com link para o app.
 
-    found: [{"ticker": "BBAS3", "count": 9}, ...] — só ativos que renderam
+    found: [{"ticker": "BBAS3", "count": 9}, ...], só ativos que renderam
     algum relatório. Enviado uma vez por lote de cadastro.
     """
     if not settings.TELEGRAM_BOT_TOKEN or not found:
@@ -109,7 +109,7 @@ async def send_consolidated_reports(
     reports_by_ticker: {ticker: [{title, summary, source_url, document_type}, ...]}
     """
     if not settings.TELEGRAM_BOT_TOKEN:
-        logger.warning("TELEGRAM_BOT_TOKEN não configurado — relatório não enviado.")
+        logger.warning("TELEGRAM_BOT_TOKEN não configurado, relatório não enviado.")
         return False
 
     tickers = list(reports_by_ticker.keys())
@@ -137,7 +137,7 @@ async def send_consolidated_reports(
                     parse_mode=ParseMode.HTML,
                     disable_web_page_preview=True,
                 )
-        logger.info(f"Telegram consolidado enviado para chat_id {chat_id} — {tickers}")
+        logger.info(f"Telegram consolidado enviado para chat_id {chat_id}, {tickers}")
         return True
     except TelegramError as e:
         logger.error(f"Erro ao enviar Telegram para chat_id {chat_id}: {e}")

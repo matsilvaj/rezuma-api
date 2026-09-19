@@ -17,7 +17,7 @@ _SEARCH_ALLOWED = re.compile(r"^[A-Za-z0-9 ]+$")
 def search_b3_assets(request: Request, q: str = Query(min_length=1, max_length=20)):
     """
     Busca ativos no catálogo da B3 pelo ticker ou nome.
-    Endpoint público para autocomplete — não exige autenticação.
+    Endpoint público para autocomplete, não exige autenticação.
     """
     forwarded = request.headers.get("X-Forwarded-For")
     ip = forwarded.split(",")[-1].strip() if forwarded else (request.client.host if request.client else "unknown")
@@ -96,7 +96,7 @@ def add_asset(
 ):
     """
     Adiciona um ativo à carteira do usuário autenticado.
-    O ticker é validado pela FK com b3_assets — só aceita ativos reais da B3.
+    O ticker é validado pela FK com b3_assets, só aceita ativos reais da B3.
 
     Se o ticker ainda não tem nenhum relatório no banco, dispara em segundo
     plano o backfill dos últimos 2 meses, para o dashboard não nascer vazio.
