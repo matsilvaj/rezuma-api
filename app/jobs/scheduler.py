@@ -9,7 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from app.core.database import get_supabase
-from app.services.ai import summarize
+from app.services.ai import IAIndisponivel, summarize
 from app.services.b3 import is_b3_assets_empty, sync_b3_assets
 from app.services.cvm import download_pdf as cvm_download_pdf
 from app.services.cvm import _UNSET as _UNSET_SI
@@ -275,6 +275,24 @@ async def _process_pipeline(
                         "notify_telegram": profile.get("notify_telegram", False),
                         "telegram_chat_id": profile.get("telegram_chat_id"),
                     })
+
+            except IAIndisponivel as e:
+                # Vale para todo documento, não só para este: insistir não
+                # adianta. Avisa e encerra a rodada. Nada foi gravado, e o job
+                # seguinte busca os últimos 7 dias, então o que ficou para trás
+                # é reprocessado assim que a IA voltar.
+                logger.error(f"IA indisponível, rodada interrompida: {e}")
+                send_admin_alert(
+                    subject="IA indisponível: resumos parados",
+                    body=(
+                        "O pipeline parou porque a IA deixou de responder.\n\n"
+                        f"Motivo: {e}\n\n"
+                        "Se for crédito esgotado, recarregue no console da Anthropic. "
+                        "Os documentos desta rodada não foram perdidos: o próximo job "
+                        "busca os últimos 7 dias e reprocessa o que faltou."
+                    ),
+                )
+                return
 
             except Exception as e:
                 logger.error(f"Erro ao processar {doc.get('source_url')}: {e}")

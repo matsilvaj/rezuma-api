@@ -10,6 +10,18 @@ from app.services.metrics import normalize_metrics
 
 logger = logging.getLogger(__name__)
 
+
+class IAIndisponivel(Exception):
+    """
+    A IA não está atendendo por um motivo que se repete em toda chamada:
+    crédito esgotado, chave inválida ou limite de uso.
+
+    Separada dos outros erros de propósito. Documento malformado é problema
+    daquele documento e o pipeline segue para o próximo; isto aqui vale para
+    todos, então insistir só queima tempo, e alguém precisa ser avisado.
+    """
+
+
 # O prompt proíbe travessão e meia-risca, mas instrução não é garantia: o
 # modelo escorrega e o caractere aparece no e-mail e no Telegram, que não
 # passam pelo sanitizador do painel. Limpar aqui vale para os três canais.
@@ -317,6 +329,16 @@ def summarize(
         return summary, metrics
     except (json.JSONDecodeError, KeyError, IndexError) as e:
         logger.error(f"Erro ao parsear resposta da IA para {ticker}: {e}")
+        return "", {}
+    except (anthropic.AuthenticationError, anthropic.PermissionDeniedError, anthropic.RateLimitError) as e:
+        raise IAIndisponivel(f"{type(e).__name__}: {e}") from e
+    except anthropic.APIStatusError as e:
+        # Crédito esgotado chega como 400 com a mensagem falando de saldo, não
+        # como um erro próprio, então a checagem é pelo texto.
+        texto = str(e).lower()
+        if "credit balance" in texto or "insufficient" in texto or "quota" in texto:
+            raise IAIndisponivel(f"Crédito da Anthropic esgotado: {e}") from e
+        logger.error(f"Erro na chamada à IA para {ticker}: {e}")
         return "", {}
     except Exception as e:
         logger.error(f"Erro na chamada à IA para {ticker}: {e}")
