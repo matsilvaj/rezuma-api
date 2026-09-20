@@ -82,3 +82,16 @@ class Report(BaseModel):
     source_url: str
     published_at: datetime
     created_at: datetime
+
+
+# ---------------------------------------------------------------------------
+# Contato
+# ---------------------------------------------------------------------------
+
+class ContactCreate(BaseModel):
+    """Mensagem do formulário de contato."""
+    nome: Annotated[str, Field(min_length=2, max_length=80)]
+    email: EmailStr
+    mensagem: Annotated[str, Field(min_length=10, max_length=2000)]
+    # Campo isca: fica escondido no formulário, então só robô preenche.
+    website: Optional[str] = None

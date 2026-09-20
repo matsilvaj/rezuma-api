@@ -35,6 +35,15 @@ class Settings(BaseSettings):
     # Chave secreta para endpoints administrativos, obrigatório em produção
     ADMIN_SECRET_KEY: str = ""
 
+    # Formulário de contato. O aviso por e-mail sai por SMTP comum (Gmail),
+    # separado do Resend, para não gastar a cota dos resumos. Sem SMTP
+    # configurado a mensagem continua sendo gravada no banco.
+    CONTACT_EMAIL: str = ""
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+
     class Config:
         env_file = ".env"
         case_sensitive = True

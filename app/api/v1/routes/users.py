@@ -1,3 +1,4 @@
+import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -9,6 +10,7 @@ from app.core.security import get_current_user, get_user_id
 from app.models.schemas import UserProfileUpdate
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/me")
@@ -98,3 +100,28 @@ def disconnect_telegram(user_id: str = Depends(get_user_id)):
         "telegram_link_token": None,
         "telegram_link_token_expires_at": None,
     }).eq("id", user_id).execute()
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def excluir_conta(user_id: str = Depends(get_user_id)):
+    """
+    Apaga a conta e todos os dados do usuário.
+
+    Direito garantido pela LGPD, e por isso a ação é definitiva. Apagar em
+    auth.users derruba junto perfil, ativos e logs de notificação, que têm
+    on delete cascade. Os relatórios ficam: eles são de documentos públicos,
+    não pertencem a ninguém e servem a quem mais acompanha o mesmo ativo.
+
+    O frontend pede a senha antes de chegar aqui.
+    """
+    supabase = get_supabase()
+    try:
+        supabase.auth.admin.delete_user(user_id)
+    except Exception as e:
+        logger.error(f"Falha ao excluir conta {user_id}: {type(e).__name__}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Não foi possível excluir a conta agora. Tente novamente.",
+        )
+
+    logger.info(f"Conta excluída: {user_id}")
