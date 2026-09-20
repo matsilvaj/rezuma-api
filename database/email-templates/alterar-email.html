@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<title>Rezuma</title>
+<style>
+  :root { color-scheme: dark; supported-color-schemes: dark; }
+</style>
+</head>
+<body bgcolor="#07080a" style="margin:0;padding:0;background-color:#07080a;">
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#07080a" style="background-color:#07080a;">
+<tr><td align="center" bgcolor="#07080a" style="padding:36px 16px;background-color:#07080a;">
+<table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+
+  <tr><td style="padding:0 0 28px 0;">
+    <span style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:17px;font-weight:700;color:#ededea;letter-spacing:-0.5px;">rezuma</span>
+  </td></tr>
+
+  <tr><td bgcolor="#0d0f11" style="background-color:#0d0f11;border:1px solid rgba(237,237,234,0.07);border-radius:10px;padding:28px 26px;">
+    <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:19px;font-weight:700;color:#ededea;letter-spacing:-0.3px;margin:0 0 12px 0;">
+      Confirme a troca de e-mail
+    </p>
+    <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.75;color:rgba(237,237,234,0.55);margin:0 0 20px 0;">
+      Pedimos a confirmação para ter certeza de que o endereço é seu. Depois
+      dela, os resumos passam a chegar no novo e-mail, que também vira o seu
+      login.
+    </p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px 0;">
+      <tr><td style="border-left:2px solid rgba(94,184,138,0.35);padding:2px 0 2px 14px;">
+        <p style="font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:13px;line-height:1.7;color:rgba(237,237,234,0.70);margin:0;word-break:break-all;">
+          {{ .Email }}<br>
+          <span style="color:rgba(237,237,234,0.30);">passa a ser</span><br>
+          {{ .NewEmail }}
+        </p>
+      </td></tr>
+    </table>
+
+    <table cellpadding="0" cellspacing="0"><tr><td bgcolor="#ededea" style="background-color:#ededea;border-radius:8px;">
+      <a href="{{ .ConfirmationURL }}" style="display:inline-block;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;color:#07080a;text-decoration:none;padding:12px 24px;">Confirmar troca</a>
+    </td></tr></table>
+
+    <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:rgba(237,237,234,0.35);margin:24px 0 0 0;">
+      Se o botão não funcionar, copie e cole este endereço no navegador:<br>
+      <span style="color:rgba(237,237,234,0.50);word-break:break-all;">{{ .ConfirmationURL }}</span>
+    </p>
+  </td></tr>
+
+  <tr><td style="padding:24px 0 0 0;">
+    <p style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.7;color:rgba(237,237,234,0.30);margin:0;">
+      Se não foi você que pediu a troca, ignore este e-mail e troque sua senha:
+      sem a confirmação, nada muda.
+    </p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>
