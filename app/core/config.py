@@ -35,14 +35,11 @@ class Settings(BaseSettings):
     # Chave secreta para endpoints administrativos, obrigatório em produção
     ADMIN_SECRET_KEY: str = ""
 
-    # Formulário de contato. O aviso por e-mail sai por SMTP comum (Gmail),
-    # separado do Resend, para não gastar a cota dos resumos. Sem SMTP
-    # configurado a mensagem continua sendo gravada no banco.
-    CONTACT_EMAIL: str = ""
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
+    # Formulário de contato: as mensagens caem no Telegram de quem mantém.
+    # Bot próprio, separado do bot que entrega os resumos, para um não
+    # derrubar o outro se precisar trocar o token.
+    CONTACT_BOT_TOKEN: str = ""
+    CONTACT_CHAT_ID: str = ""
 
     class Config:
         env_file = ".env"

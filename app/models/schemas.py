@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -90,6 +90,9 @@ class Report(BaseModel):
 
 class ContactCreate(BaseModel):
     """Mensagem do formulário de contato."""
+    # Aceita só o que o formulário oferece: assunto livre viraria mais um
+    # texto de estranho sem limite dentro da mensagem entregue.
+    assunto: Literal["erro", "sugestao", "duvida", "outro"] = "outro"
     nome: Annotated[str, Field(min_length=2, max_length=80)]
     email: EmailStr
     mensagem: Annotated[str, Field(min_length=10, max_length=2000)]
